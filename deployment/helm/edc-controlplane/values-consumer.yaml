@@ -25,7 +25,7 @@ image:
 ## Note: 'imagePullSecret.dockerconfigjson' takes precedence if configured together with 'imagePullSecrets'
 ##
 imagePullSecret:
-  dockerconfigjson: ""
+  dockerconfigjson: "ewogICJhdXRocyI6IHsKICAgICJnaGNyLmlvIjogewogICAgICAiYXV0aCI6ICJZVzVrY21WaExtSmxjblJoWjI1dmJHeHBRR2R0WVdsc0xtTnZiVHBuYUhCZk5tZEpNSEJyUmtzMGIxbG5RemRSV2tFMU4zaHViM3BGVVVJNWMwRXlORE5MZUc1dkNnPT0iCiAgICB9CiAgfQp9Cg=="
 
 ##
 ## Existing image pull secret to use to obtain the container image
