@@ -52,11 +52,38 @@ public class HashicorpVault implements Vault {
 
   @Override
   public Result<Void> storeSecret(String key, String value) {
-    return null;
+    CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future =
+        hashicorpVaultClient.setSecret(key, value);
+
+    Result<CreateHashicorpVaultEntryResponsePayload> result;
+    try {
+      result = future.get(30, TimeUnit.SECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
+
+    if (result.failed()) {
+      throw new HashicorpVaultException(
+          String.join(System.lineSeparator(), result.getFailure().getMessages()));
+    }
+    return Result.success();
   }
 
   @Override
   public Result<Void> deleteSecret(String key) {
-    return null;
+    CompletableFuture<Result<Void>> future = hashicorpVaultClient.destroySecret(key);
+
+    Result<Void> result;
+    try {
+      result = future.get(30, TimeUnit.SECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
+
+    if (result.failed()) {
+      throw new HashicorpVaultException(
+          String.join(System.lineSeparator(), result.getFailure().getMessages()));
+    }
+    return result;
   }
 }

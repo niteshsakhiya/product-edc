@@ -14,16 +14,17 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
-import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_NAME;
+import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultClient.SECRET_KEY;
 import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_URL;
 
 import java.util.HashMap;
+import java.util.UUID;
 import lombok.Getter;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,15 +39,15 @@ import org.testcontainers.vault.VaultContainer;
 @ExtendWith(EdcExtension.class)
 public class HashicorpVaultTest {
   private static final String TEST_TOKEN = "test-token";
-  private static final String TEST_NAME = "testing";
-  private TestExtension testExtension = new TestExtension();
+  private static final String TEST_KEY = "testing";
+  private final TestExtension testExtension = new TestExtension();
+  private static final String TEST_VALUE = UUID.randomUUID().toString();
 
   @Container @ClassRule
-  public static VaultContainer vaultContainer =
+  public static final VaultContainer vaultContainer =
       new VaultContainer<>(DockerImageName.parse("vault:1.9.6"))
           .withVaultToken(TEST_TOKEN)
-          .withSecretInVault(
-              "secret/" + TEST_NAME, "top_secret=password1", "db_password=dbpassword1");
+          .withSecretInVault("secret/" + TEST_KEY, String.format("%s=%s", SECRET_KEY, TEST_VALUE));
 
   @BeforeEach
   void beforeEach(EdcExtension extension) {
@@ -58,7 +59,6 @@ public class HashicorpVaultTest {
                 String.format(
                     "http://%s:%s", vaultContainer.getHost(), vaultContainer.getFirstMappedPort()));
             put(VAULT_TOKEN, TEST_TOKEN);
-            put(VAULT_NAME, TEST_NAME);
           }
         });
     extension.registerSystemExtension(ServiceExtension.class, testExtension);
@@ -67,11 +67,41 @@ public class HashicorpVaultTest {
   @Test
   public void testResolveSecret() {
     Vault vault = testExtension.getVault();
-    String secretValue = vault.resolveSecret("top_secret");
-    Assertions.assertEquals("password1", secretValue);
+    String secretValue = vault.resolveSecret(TEST_KEY);
+    Assertions.assertEquals(TEST_VALUE, secretValue);
+  }
+
+  @Test
+  public void testSetSecret() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+
+    Vault vault = testExtension.getVault();
+    vault.storeSecret(key, value);
+    String secretValue = vault.resolveSecret(key);
+    Assertions.assertEquals(value, secretValue);
+  }
+
+  @Test
+  public void testDeleteSecret() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+
+    Vault vault = testExtension.getVault();
+    vault.storeSecret(key, value);
+    vault.deleteSecret(key);
+
+    HashicorpVaultException exception =
+        Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret(key));
+    Assertions.assertEquals("Call unsuccessful: 404", exception.getMessage());
   }
 
   private static class TestExtension implements ServiceExtension {
-    @Inject @Getter private Vault vault;
+    @Getter private Vault vault;
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+      vault = context.getService(Vault.class);
+    }
   }
 }

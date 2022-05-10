@@ -29,8 +29,6 @@ public class HashicorpVaultExtension implements VaultExtension {
 
   @EdcSetting public static final String VAULT_URL = "edc.vault.url";
 
-  @EdcSetting public static final String VAULT_NAME = "edc.vault.name";
-
   @EdcSetting public static final String VAULT_TOKEN = "edc.vault.token";
 
   private Vault vault;
@@ -63,20 +61,16 @@ public class HashicorpVaultExtension implements VaultExtension {
   @Override
   public void initializeVault(ServiceExtensionContext context) {
     String vaultUrl = Objects.requireNonNull(context.getSetting(VAULT_URL, null));
-    String vaultName = Objects.requireNonNull(context.getSetting(VAULT_NAME, null));
     String vaultToken = Objects.requireNonNull(context.getSetting(VAULT_TOKEN, null));
 
     // TODO: check where the OkHttpClient comes from
     OkHttpClient httpClient = new OkHttpClient.Builder().build();
     HashicorpVaultClientConfig config =
-        HashicorpVaultClientConfig.builder()
-            .vaultUrl(vaultUrl)
-            .vaultToken(vaultToken)
-            .vaultName(vaultName)
-            .build();
+        HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
     HashicorpVaultClient client =
         new HashicorpVaultClient(config, httpClient, context.getTypeManager().getMapper());
     vault = new HashicorpVault(client, context.getMonitor());
+
     context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
   }
 }
