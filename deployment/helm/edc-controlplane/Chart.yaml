@@ -4,6 +4,6 @@ name: edc-controlplane
 description: EDC Control-Plane
 home: https://github.com/catenax-ng/product-edc/deployment/helm/edc-controlplane
 type: application
-appVersion: "sha-be038a7"
+appVersion: "sha-7ae9e4c"
 version: 0.0.2
 maintainers: []
