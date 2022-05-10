@@ -1,10 +1,9 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.util.Map;
 import java.util.Objects;
+import lombok.Data;
 
 @Data
 class HashicorpVaultEntry {
