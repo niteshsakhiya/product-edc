@@ -795,6 +795,11 @@
                 <artifactId>web-spi</artifactId>
                 <version>${org.eclipse.dataspaceconnector.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.dataspaceconnector</groupId>
+                <artifactId>junit-extension</artifactId>
+                <version>${org.eclipse.dataspaceconnector.version}</version>
+            </dependency>
 
             <!-- BOMs -->
             <dependency>
