@@ -13,7 +13,7 @@ image:
   ##   * ghcr.io/catenax-ng/product-edc/edc-controlplane-postgresql
   ##   * ghcr.io/catenax-ng/product-edc/edc-controlplane-cosmosdb
   ##
-  repository: edc-controlplane-memory
+  repository: ghcr.io/catenax-ng/product-edc/edc-controlplane-memory
   pullPolicy: IfNotPresent
   ##
   ## Overrides the image tag whose default is the chart appVersion.
