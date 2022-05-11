@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
+import java.time.Duration;
 import java.util.Objects;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -30,6 +31,8 @@ public class HashicorpVaultExtension implements VaultExtension {
   @EdcSetting public static final String VAULT_URL = "edc.vault.url";
 
   @EdcSetting public static final String VAULT_TOKEN = "edc.vault.token";
+
+  @EdcSetting private static final String VAULT_TIMEOUT_SECONDS = "edc.vault.timeout.seconds";
 
   private Vault vault;
 
@@ -62,14 +65,17 @@ public class HashicorpVaultExtension implements VaultExtension {
   public void initializeVault(ServiceExtensionContext context) {
     String vaultUrl = Objects.requireNonNull(context.getSetting(VAULT_URL, null));
     String vaultToken = Objects.requireNonNull(context.getSetting(VAULT_TOKEN, null));
+    String vaultTimeoutString = context.getSetting(VAULT_TIMEOUT_SECONDS, "30");
+    int vaultTimeoutInteger = Integer.parseInt(vaultTimeoutString);
+    Duration vaultTimeoutDuration = Duration.ofSeconds(vaultTimeoutInteger);
 
     // TODO: check where the OkHttpClient comes from
-    OkHttpClient httpClient = new OkHttpClient.Builder().build();
+    OkHttpClient httpClient = context.getService(OkHttpClient.class);
     HashicorpVaultClientConfig config =
         HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
     HashicorpVaultClient client =
         new HashicorpVaultClient(config, httpClient, context.getTypeManager().getMapper());
-    vault = new HashicorpVault(client, context.getMonitor());
+    vault = new HashicorpVault(client, context.getMonitor(), vaultTimeoutDuration);
 
     context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
   }

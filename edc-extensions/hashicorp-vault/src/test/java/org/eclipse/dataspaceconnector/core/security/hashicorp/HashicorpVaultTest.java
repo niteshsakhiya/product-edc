@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.junit.jupiter.Container;
@@ -38,14 +39,16 @@ import org.testcontainers.vault.VaultContainer;
 @Testcontainers
 @ExtendWith(EdcExtension.class)
 public class HashicorpVaultTest {
+  private static final String ERROR_MESSAGE_404 = "Call unsuccessful: 404";
+  private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
   private static final String TEST_TOKEN = "test-token";
   private static final String TEST_KEY = "testing";
   private final TestExtension testExtension = new TestExtension();
   private static final String TEST_VALUE = UUID.randomUUID().toString();
 
   @Container @ClassRule
-  public static final VaultContainer vaultContainer =
-      new VaultContainer<>(DockerImageName.parse("vault:1.9.6"))
+  public static final VaultContainer<?> vaultContainer =
+      new VaultContainer<>(DockerImageName.parse(DOCKER_IMAGE_NAME))
           .withVaultToken(TEST_TOKEN)
           .withSecretInVault("secret/" + TEST_KEY, String.format("%s=%s", SECRET_KEY, TEST_VALUE));
 
@@ -65,14 +68,38 @@ public class HashicorpVaultTest {
   }
 
   @Test
-  public void testResolveSecret() {
+  @DisplayName("Resolve a secret that exists")
+  public void testResolveSecret_exists() {
     Vault vault = testExtension.getVault();
     String secretValue = vault.resolveSecret(TEST_KEY);
     Assertions.assertEquals(TEST_VALUE, secretValue);
   }
 
   @Test
-  public void testSetSecret() {
+  @DisplayName("Resolve a secret that does not exist")
+  public void testResolveSecret_doesNotExist() {
+    Vault vault = testExtension.getVault();
+    HashicorpVaultException exception = Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret("wrong_key"));
+    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Update a secret that exists")
+  public void testSetSecret_exists() {
+    String key = UUID.randomUUID().toString();
+    String value1 = UUID.randomUUID().toString();
+    String value2 = UUID.randomUUID().toString();
+
+    Vault vault = testExtension.getVault();
+    vault.storeSecret(key, value1);
+    vault.storeSecret(key, value2);
+    String secretValue = vault.resolveSecret(key);
+    Assertions.assertEquals(value2, secretValue);
+  }
+
+  @Test
+  @DisplayName("Create a secret that does not exist")
+  public void testSetSecret_doesNotExist() {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
@@ -83,7 +110,8 @@ public class HashicorpVaultTest {
   }
 
   @Test
-  public void testDeleteSecret() {
+  @DisplayName("Delete a secret that exists")
+  public void testDeleteSecret_exists() {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
@@ -93,7 +121,20 @@ public class HashicorpVaultTest {
 
     HashicorpVaultException exception =
         Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret(key));
-    Assertions.assertEquals("Call unsuccessful: 404", exception.getMessage());
+    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Try to delete a secret that does not exist")
+  public void testDeleteSecret_doesNotExist() {
+    String key = UUID.randomUUID().toString();
+
+    Vault vault = testExtension.getVault();
+    vault.deleteSecret(key);
+
+    HashicorpVaultException exception =
+            Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret(key));
+    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
   }
 
   private static class TestExtension implements ServiceExtension {

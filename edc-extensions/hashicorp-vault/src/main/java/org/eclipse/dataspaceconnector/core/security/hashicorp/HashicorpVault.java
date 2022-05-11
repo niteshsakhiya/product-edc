@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -31,17 +33,13 @@ public class HashicorpVault implements Vault {
 
   @NonNull private final HashicorpVaultClient hashicorpVaultClient;
   @NonNull private final Monitor monitor;
+  @NonNull private final Duration timeoutDuration;
 
   @Override
   public @Nullable String resolveSecret(@NonNull String key) {
     CompletableFuture<Result<String>> future = hashicorpVaultClient.getSecretValue(key);
 
-    Result<String> result;
-    try {
-      result = future.get(30, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      throw new HashicorpVaultException(e.getMessage(), e);
-    }
+    Result<String> result = getResult(future);
 
     if (result.failed()) {
       throw new HashicorpVaultException(
@@ -55,12 +53,7 @@ public class HashicorpVault implements Vault {
     CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future =
         hashicorpVaultClient.setSecret(key, value);
 
-    Result<CreateHashicorpVaultEntryResponsePayload> result;
-    try {
-      result = future.get(30, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      throw new HashicorpVaultException(e.getMessage(), e);
-    }
+    Result<CreateHashicorpVaultEntryResponsePayload> result = getResult(future);
 
     if (result.failed()) {
       throw new HashicorpVaultException(
@@ -73,17 +66,28 @@ public class HashicorpVault implements Vault {
   public Result<Void> deleteSecret(String key) {
     CompletableFuture<Result<Void>> future = hashicorpVaultClient.destroySecret(key);
 
-    Result<Void> result;
-    try {
-      result = future.get(30, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      throw new HashicorpVaultException(e.getMessage(), e);
-    }
+    Result<Void> result = getResult(future);
 
     if (result.failed()) {
       throw new HashicorpVaultException(
           String.join(System.lineSeparator(), result.getFailure().getMessages()));
     }
+    return result;
+  }
+
+  @SneakyThrows
+  private <T> Result<T> getResult(CompletableFuture<Result<T>> future) {
+    Result<T> result;
+    try {
+      if(timeoutDuration.isNegative() || timeoutDuration.isZero()) {
+        result = future.get();
+      } else {
+        result = future.get(timeoutDuration.getSeconds(), TimeUnit.SECONDS);
+      }
+    } catch (ExecutionException | TimeoutException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
+
     return result;
   }
 }
