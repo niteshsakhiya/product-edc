@@ -1,8 +1,24 @@
+/*
+ *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -29,19 +45,21 @@ class HashicorpVaultClient {
   private final OkHttpClient okHttpClient;
   private final ObjectMapper objectMapper;
 
-  public String getSecretDataUrl() {
+  private String getSecretDataUrl() {
     return String.format("%s%s", config.getVaultUrl(), VAULT_SECRET_DATA_PATH);
   }
 
-  public String getSecretMetadataUrl() {
+  private String getSecretMetadataUrl() {
     return String.format("%s%s", config.getVaultUrl(), VAULT_SECRET_METADATA_PATH);
   }
 
   @NotNull
-  public CompletableFuture<Result<String>> getSecretValue(String key) {
+  CompletableFuture<Result<String>> getSecretValue(String key) {
     Request request =
         new Request.Builder()
-            .url(String.format("%s%s", getSecretDataUrl(), key))
+            .url(
+                String.format(
+                    "%s%s", getSecretDataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
             .get()
             .header(VAULT_TOKEN_HEADER, config.getVaultToken())
             .build();
@@ -53,6 +71,10 @@ class HashicorpVaultClient {
             new Callback() {
               @Override
               public void onResponse(@NotNull Call call, @NotNull Response response) {
+                if (response.code() == 404) {
+                  future.complete(null);
+                  return;
+                }
                 if (response.isSuccessful()) {
                   try (var body = response.body()) {
                     if (body == null) {
@@ -83,7 +105,7 @@ class HashicorpVaultClient {
     return future;
   }
 
-  public CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
+  CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
       String key, String value) {
     CreateHashicorpVaultEntryRequestPayload payload =
         CreateHashicorpVaultEntryRequestPayload.builder()
@@ -103,7 +125,9 @@ class HashicorpVaultClient {
 
     Request request =
         new Request.Builder()
-            .url(String.format("%s%s", getSecretDataUrl(), key))
+            .url(
+                String.format(
+                    "%s%s", getSecretDataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
             .post(RequestBody.create(body, MediaType.get("application/json")))
             .header(VAULT_TOKEN_HEADER, config.getVaultToken())
             .build();
@@ -147,10 +171,12 @@ class HashicorpVaultClient {
     return future;
   }
 
-  public CompletableFuture<Result<Void>> destroySecret(String key) {
+  CompletableFuture<Result<Void>> destroySecret(String key) {
     Request request =
         new Request.Builder()
-            .url(String.format("%s%s", getSecretMetadataUrl(), key))
+            .url(
+                String.format(
+                    "%s%s", getSecretMetadataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
             .delete()
             .header(VAULT_TOKEN_HEADER, config.getVaultToken())
             .build();

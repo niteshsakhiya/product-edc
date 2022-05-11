@@ -39,7 +39,6 @@ import org.testcontainers.vault.VaultContainer;
 @Testcontainers
 @ExtendWith(EdcExtension.class)
 public class HashicorpVaultTest {
-  private static final String ERROR_MESSAGE_404 = "Call unsuccessful: 404";
   private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
   private static final String TEST_TOKEN = "test-token";
   private static final String TEST_KEY = "testing";
@@ -79,8 +78,7 @@ public class HashicorpVaultTest {
   @DisplayName("Resolve a secret that does not exist")
   public void testResolveSecret_doesNotExist() {
     Vault vault = testExtension.getVault();
-    HashicorpVaultException exception = Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret("wrong_key"));
-    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
+    Assertions.assertNull(vault.resolveSecret("wrong_key"));
   }
 
   @Test
@@ -119,9 +117,7 @@ public class HashicorpVaultTest {
     vault.storeSecret(key, value);
     vault.deleteSecret(key);
 
-    HashicorpVaultException exception =
-        Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret(key));
-    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
+    Assertions.assertNull(vault.resolveSecret(key));
   }
 
   @Test
@@ -132,9 +128,7 @@ public class HashicorpVaultTest {
     Vault vault = testExtension.getVault();
     vault.deleteSecret(key);
 
-    HashicorpVaultException exception =
-            Assertions.assertThrows(HashicorpVaultException.class, () -> vault.resolveSecret(key));
-    Assertions.assertEquals(ERROR_MESSAGE_404, exception.getMessage());
+    Assertions.assertNull(vault.resolveSecret(key));
   }
 
   private static class TestExtension implements ServiceExtension {

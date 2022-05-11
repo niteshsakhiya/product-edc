@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetHashicorpVaultEntryResponsePayload {
+class GetHashicorpVaultEntryResponsePayload {
 
   @JsonProperty("data")
   private GetVaultEntryData data;
@@ -37,7 +37,7 @@ public class GetHashicorpVaultEntryResponsePayload {
   @AllArgsConstructor
   @Data
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class GetVaultEntryData {
+  static class GetVaultEntryData {
 
     @JsonProperty("data")
     private Map<String, String> data;

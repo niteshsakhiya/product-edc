@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
  *
  */
 
@@ -66,11 +66,15 @@ public class HashicorpVaultExtension implements VaultExtension {
     String vaultUrl = Objects.requireNonNull(context.getSetting(VAULT_URL, null));
     String vaultToken = Objects.requireNonNull(context.getSetting(VAULT_TOKEN, null));
     String vaultTimeoutString = context.getSetting(VAULT_TIMEOUT_SECONDS, "30");
-    int vaultTimeoutInteger = Integer.parseInt(vaultTimeoutString);
+    int vaultTimeoutInteger = Math.max(0, Integer.parseInt(vaultTimeoutString));
     Duration vaultTimeoutDuration = Duration.ofSeconds(vaultTimeoutInteger);
 
-    // TODO: check where the OkHttpClient comes from
-    OkHttpClient httpClient = context.getService(OkHttpClient.class);
+    OkHttpClient httpClient =
+        new OkHttpClient.Builder()
+            .callTimeout(vaultTimeoutDuration)
+            .readTimeout(vaultTimeoutDuration)
+            .build();
+
     HashicorpVaultClientConfig config =
         HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
     HashicorpVaultClient client =

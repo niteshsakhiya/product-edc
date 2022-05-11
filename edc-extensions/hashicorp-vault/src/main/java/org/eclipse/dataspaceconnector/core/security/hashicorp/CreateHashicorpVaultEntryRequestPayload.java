@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateHashicorpVaultEntryRequestPayload {
+class CreateHashicorpVaultEntryRequestPayload {
 
   @JsonProperty("options")
   private Options options;
@@ -40,7 +40,7 @@ public class CreateHashicorpVaultEntryRequestPayload {
   @AllArgsConstructor
   @Data
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Options {
+  static class Options {
     @JsonProperty("cas")
     private Integer cas;
   }

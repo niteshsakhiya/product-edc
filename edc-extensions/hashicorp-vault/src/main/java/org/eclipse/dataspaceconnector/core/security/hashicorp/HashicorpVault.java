@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 /** Implements a vault backed by Hashicorp Vault. */
 @RequiredArgsConstructor
-public class HashicorpVault implements Vault {
+class HashicorpVault implements Vault {
 
   @NonNull private final HashicorpVaultClient hashicorpVaultClient;
   @NonNull private final Monitor monitor;
@@ -40,6 +40,9 @@ public class HashicorpVault implements Vault {
     CompletableFuture<Result<String>> future = hashicorpVaultClient.getSecretValue(key);
 
     Result<String> result = getResult(future);
+    if (result == null) {
+      return null;
+    }
 
     if (result.failed()) {
       throw new HashicorpVaultException(
@@ -55,31 +58,22 @@ public class HashicorpVault implements Vault {
 
     Result<CreateHashicorpVaultEntryResponsePayload> result = getResult(future);
 
-    if (result.failed()) {
-      throw new HashicorpVaultException(
-          String.join(System.lineSeparator(), result.getFailure().getMessages()));
-    }
-    return Result.success();
+    return result.succeeded() ? Result.success() : Result.failure(result.getFailureMessages());
   }
 
   @Override
   public Result<Void> deleteSecret(String key) {
     CompletableFuture<Result<Void>> future = hashicorpVaultClient.destroySecret(key);
 
-    Result<Void> result = getResult(future);
-
-    if (result.failed()) {
-      throw new HashicorpVaultException(
-          String.join(System.lineSeparator(), result.getFailure().getMessages()));
-    }
-    return result;
+    return getResult(future);
   }
 
   @SneakyThrows
   private <T> Result<T> getResult(CompletableFuture<Result<T>> future) {
+    // TODO: resolve exception
     Result<T> result;
     try {
-      if(timeoutDuration.isNegative() || timeoutDuration.isZero()) {
+      if (timeoutDuration.isZero()) {
         result = future.get();
       } else {
         result = future.get(timeoutDuration.getSeconds(), TimeUnit.SECONDS);
