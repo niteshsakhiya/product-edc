@@ -14,14 +14,13 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
+import java.security.cert.X509Certificate;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.security.cert.X509Certificate;
-import java.util.UUID;
 
 class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
 
