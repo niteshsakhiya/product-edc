@@ -36,6 +36,9 @@
         <org.apache.maven.plugins.shade.version>3.3.0</org.apache.maven.plugins.shade.version>
         <org.codehaus.mojo.exec.maven.plugin.version>3.0.0</org.codehaus.mojo.exec.maven.plugin.version>
         <org.apache.maven.plugins.surefire.version>3.0.0-M6</org.apache.maven.plugins.surefire.version>
+        <org.apache.maven.plugins.compiler.version>3.10.1</org.apache.maven.plugins.compiler.version>
+        <org.projectlombok.lombok.maven.plugin.version>1.18.20.0</org.projectlombok.lombok.maven.plugin.version>
+        <org.apache.maven.plugins.failsafe.version>2.22.0</org.apache.maven.plugins.failsafe.version>
 
         <!-- dependency version -->
         <org.eclipse.dataspaceconnector.version>0.0.1-SNAPSHOT</org.eclipse.dataspaceconnector.version>
@@ -94,6 +97,21 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok-maven-plugin</artifactId>
+                    <version>${org.projectlombok.lombok.maven.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${org.apache.maven.plugins.compiler.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${org.apache.maven.plugins.failsafe.version}</version>
+                </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>

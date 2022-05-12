@@ -80,7 +80,7 @@ class HashicorpVault implements Vault {
         result = future.get(timeoutDuration.getSeconds(), TimeUnit.SECONDS);
       }
     } catch (ExecutionException | TimeoutException e) {
-      if(e.getCause() instanceof HashicorpVaultException) {
+      if (e.getCause() instanceof HashicorpVaultException) {
         throw (HashicorpVaultException) e.getCause();
       }
 

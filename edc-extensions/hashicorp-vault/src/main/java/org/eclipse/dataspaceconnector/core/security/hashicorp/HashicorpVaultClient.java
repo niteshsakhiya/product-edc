@@ -35,7 +35,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,7 +93,8 @@ class HashicorpVaultClient {
                     try (ResponseBody body = response.body()) {
                       if (body == null) {
                         completableFuture.completeExceptionally(
-                            new HashicorpVaultException("Received an empty body response from vault"));
+                            new HashicorpVaultException(
+                                "Received an empty body response from vault"));
 
                         return;
                       }
@@ -104,7 +104,8 @@ class HashicorpVaultClient {
                               body.string(), GetHashicorpVaultEntryResponsePayload.class);
 
                       String value =
-                          Objects.requireNonNull(payload.getData().getData().get(VAULT_DATA_ENTRY_NAME));
+                          Objects.requireNonNull(
+                              payload.getData().getData().get(VAULT_DATA_ENTRY_NAME));
 
                       completableFuture.complete(Result.success(value));
                     } catch (Exception exception) {
@@ -158,7 +159,8 @@ class HashicorpVaultClient {
                     try (ResponseBody responseBody = response.body()) {
                       if (responseBody == null) {
                         completableFuture.completeExceptionally(
-                            new HashicorpVaultException("Received an empty body response from vault"));
+                            new HashicorpVaultException(
+                                "Received an empty body response from vault"));
 
                         return;
                       }
