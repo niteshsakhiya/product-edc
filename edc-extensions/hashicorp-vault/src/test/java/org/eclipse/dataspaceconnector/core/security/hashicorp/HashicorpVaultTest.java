@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
-import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultClient.SECRET_KEY;
+import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultClient.VAULT_DATA_ENTRY_NAME;
 import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_URL;
 
@@ -38,7 +38,7 @@ import org.testcontainers.vault.VaultContainer;
 
 @Testcontainers
 @ExtendWith(EdcExtension.class)
-public class HashicorpVaultTest {
+class HashicorpVaultTest {
   private static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
   private static final String TEST_TOKEN = "test-token";
   private static final String TEST_KEY = "testing";
@@ -46,10 +46,10 @@ public class HashicorpVaultTest {
   private static final String TEST_VALUE = UUID.randomUUID().toString();
 
   @Container @ClassRule
-  public static final VaultContainer<?> vaultContainer =
+  private static final VaultContainer<?> vaultContainer =
       new VaultContainer<>(DockerImageName.parse(DOCKER_IMAGE_NAME))
           .withVaultToken(TEST_TOKEN)
-          .withSecretInVault("secret/" + TEST_KEY, String.format("%s=%s", SECRET_KEY, TEST_VALUE));
+          .withSecretInVault("secret/" + TEST_KEY, String.format("%s=%s", VAULT_DATA_ENTRY_NAME, TEST_VALUE));
 
   @BeforeEach
   void beforeEach(EdcExtension extension) {
@@ -68,7 +68,7 @@ public class HashicorpVaultTest {
 
   @Test
   @DisplayName("Resolve a secret that exists")
-  public void testResolveSecret_exists() {
+  void testResolveSecret_exists() {
     Vault vault = testExtension.getVault();
     String secretValue = vault.resolveSecret(TEST_KEY);
     Assertions.assertEquals(TEST_VALUE, secretValue);
@@ -76,14 +76,14 @@ public class HashicorpVaultTest {
 
   @Test
   @DisplayName("Resolve a secret that does not exist")
-  public void testResolveSecret_doesNotExist() {
+  void testResolveSecret_doesNotExist() {
     Vault vault = testExtension.getVault();
     Assertions.assertNull(vault.resolveSecret("wrong_key"));
   }
 
   @Test
   @DisplayName("Update a secret that exists")
-  public void testSetSecret_exists() {
+  void testSetSecret_exists() {
     String key = UUID.randomUUID().toString();
     String value1 = UUID.randomUUID().toString();
     String value2 = UUID.randomUUID().toString();
@@ -97,7 +97,7 @@ public class HashicorpVaultTest {
 
   @Test
   @DisplayName("Create a secret that does not exist")
-  public void testSetSecret_doesNotExist() {
+  void testSetSecret_doesNotExist() {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
@@ -109,7 +109,7 @@ public class HashicorpVaultTest {
 
   @Test
   @DisplayName("Delete a secret that exists")
-  public void testDeleteSecret_exists() {
+  void testDeleteSecret_exists() {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
@@ -122,7 +122,7 @@ public class HashicorpVaultTest {
 
   @Test
   @DisplayName("Try to delete a secret that does not exist")
-  public void testDeleteSecret_doesNotExist() {
+  void testDeleteSecret_doesNotExist() {
     String key = UUID.randomUUID().toString();
 
     Vault vault = testExtension.getVault();

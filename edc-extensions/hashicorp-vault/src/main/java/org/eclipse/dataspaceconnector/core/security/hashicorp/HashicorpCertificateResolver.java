@@ -32,7 +32,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-
+import org.jetbrains.annotations.Nullable;
 
 /** Resolves an X.509 certificate in Hashicorp vault. */
 @RequiredArgsConstructor
@@ -44,6 +44,7 @@ public class HashicorpCertificateResolver implements CertificateResolver {
   @NonNull private final Monitor monitor;
 
   @Override
+  @Nullable
   public X509Certificate resolveCertificate(@NonNull String id) {
     String certificateRepresentation = vault.resolveSecret(id);
     if (certificateRepresentation == null) {
@@ -54,8 +55,9 @@ public class HashicorpCertificateResolver implements CertificateResolver {
             new ByteArrayInputStream(certificateRepresentation.getBytes(StandardCharsets.UTF_8)))) {
       PEMParser pemParser = new PEMParser(reader);
       X509CertificateHolder x509CertificateHolder = (X509CertificateHolder) pemParser.readObject();
-      if (x509CertificateHolder==null) {
-        monitor.warning(String.format("Expected PEM certificate on key %s, but value not PEM.", id));
+      if (x509CertificateHolder == null) {
+        monitor.warning(
+            String.format("Expected PEM certificate on key %s, but value not PEM.", id));
         return null;
       }
       return CONVERTER.getCertificate(x509CertificateHolder);

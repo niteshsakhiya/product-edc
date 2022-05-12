@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Implements a vault backed by Hashicorp Vault. */
@@ -52,7 +53,8 @@ class HashicorpVault implements Vault {
   }
 
   @Override
-  public Result<Void> storeSecret(String key, String value) {
+  @NotNull
+  public Result<Void> storeSecret(@NotNull @NonNull String key, @NotNull @NonNull String value) {
     CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future =
         hashicorpVaultClient.setSecret(key, value);
 
@@ -62,7 +64,7 @@ class HashicorpVault implements Vault {
   }
 
   @Override
-  public Result<Void> deleteSecret(String key) {
+  public Result<Void> deleteSecret(@NotNull @NonNull String key) {
     CompletableFuture<Result<Void>> future = hashicorpVaultClient.destroySecret(key);
 
     return getResult(future);
@@ -70,7 +72,6 @@ class HashicorpVault implements Vault {
 
   @SneakyThrows
   private <T> Result<T> getResult(CompletableFuture<Result<T>> future) {
-    // TODO: resolve exception
     Result<T> result;
     try {
       if (timeoutDuration.isZero()) {
@@ -79,6 +80,10 @@ class HashicorpVault implements Vault {
         result = future.get(timeoutDuration.getSeconds(), TimeUnit.SECONDS);
       }
     } catch (ExecutionException | TimeoutException e) {
+      if(e.getCause() instanceof HashicorpVaultException) {
+        throw (HashicorpVaultException) e.getCause();
+      }
+
       throw new HashicorpVaultException(e.getMessage(), e);
     }
 

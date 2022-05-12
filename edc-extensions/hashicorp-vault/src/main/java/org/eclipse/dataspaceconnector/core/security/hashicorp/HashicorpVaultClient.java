@@ -17,188 +17,210 @@ package org.eclipse.dataspaceconnector.core.security.hashicorp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 class HashicorpVaultClient {
+  private static final String ERROR_TEMPLATE = "Call unsuccessful: %s";
   private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
-  static final String SECRET_KEY = "key";
-  private static final String VAULT_SECRET_DATA_PATH = "/v1/secret/data/";
-  private static final String VAULT_SECRET_METADATA_PATH = "/v1/secret/metadata/";
+  private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
+  private static final String VAULT_PATH_V1_SECRET_DATA = "/v1/secret/data";
+  private static final String VAULT_PATH_V1_SECRET_METADATA = "/v1/secret/metadata";
+
+  static final String VAULT_DATA_ENTRY_NAME = "content";
 
   private final HashicorpVaultClientConfig config;
   private final OkHttpClient okHttpClient;
   private final ObjectMapper objectMapper;
 
+  protected String getBaseUrl() {
+    String baseUrl = config.getVaultUrl();
+
+    if (baseUrl.endsWith("/")) {
+      baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+    }
+
+    return baseUrl;
+  }
+
   private String getSecretDataUrl() {
-    return String.format("%s%s", config.getVaultUrl(), VAULT_SECRET_DATA_PATH);
+    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_DATA)).toString();
   }
 
   private String getSecretMetadataUrl() {
-    return String.format("%s%s", config.getVaultUrl(), VAULT_SECRET_METADATA_PATH);
+    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_METADATA)).toString();
   }
 
   @NotNull
-  CompletableFuture<Result<String>> getSecretValue(String key) {
-    Request request =
-        new Request.Builder()
-            .url(
-                String.format(
-                    "%s%s", getSecretDataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
-            .get()
-            .header(VAULT_TOKEN_HEADER, config.getVaultToken())
-            .build();
+  CompletableFuture<Result<String>> getSecretValue(@NonNull String key) {
+    key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+    String requestURI = String.join("/", getSecretDataUrl(), key);
+    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
+    Request request = new Request.Builder().url(requestURI).headers(headers).get().build();
 
-    CompletableFuture<Result<String>> future = new CompletableFuture<>();
+    CompletableFuture<Result<String>> completableFuture = new CompletableFuture<>();
     okHttpClient
         .newCall(request)
         .enqueue(
-            new Callback() {
-              @Override
-              public void onResponse(@NotNull Call call, @NotNull Response response) {
-                if (response.code() == 404) {
-                  future.complete(null);
-                  return;
-                }
-                if (response.isSuccessful()) {
-                  try (var body = response.body()) {
-                    if (body == null) {
-                      future.completeExceptionally(
-                          new EdcException("Received an empty body response from vault"));
-                    } else {
+            new OkHttpResponseCallback(
+                completableFuture,
+                (response) -> {
+                  if (response.code() == 404) {
+                    completableFuture.complete(null);
+                    return;
+                  }
+
+                  if (response.isSuccessful()) {
+                    try (ResponseBody body = response.body()) {
+                      if (body == null) {
+                        completableFuture.completeExceptionally(
+                            new HashicorpVaultException("Received an empty body response from vault"));
+
+                        return;
+                      }
+
                       GetHashicorpVaultEntryResponsePayload payload =
                           objectMapper.readValue(
                               body.string(), GetHashicorpVaultEntryResponsePayload.class);
-                      String value =
-                          Objects.requireNonNull(payload.getData().getData().get(SECRET_KEY));
-                      future.complete(Result.success(value));
-                    }
-                  } catch (Exception e) {
-                    future.completeExceptionally(e);
-                  }
-                } else {
-                  future.complete(
-                      Result.failure(String.format("Call unsuccessful: %s", response.code())));
-                }
-              }
 
-              @Override
-              public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                future.completeExceptionally(new HashicorpVaultException(e.getMessage(), e));
-              }
-            });
-    return future;
+                      String value =
+                          Objects.requireNonNull(payload.getData().getData().get(VAULT_DATA_ENTRY_NAME));
+
+                      completableFuture.complete(Result.success(value));
+                    } catch (Exception exception) {
+                      completableFuture.completeExceptionally(exception);
+                    }
+
+                    return;
+                  }
+
+                  completableFuture.complete(
+                      Result.failure(String.format(ERROR_TEMPLATE, response.code())));
+                }));
+    return completableFuture;
   }
 
-  CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
-      String key, String value) {
-      Map<String, String> entries = new HashMap<>();
-      entries.put(SECRET_KEY, value);
-    CreateHashicorpVaultEntryRequestPayload payload =
-        CreateHashicorpVaultEntryRequestPayload.builder()
-            .data(
-                    entries)
-            .build();
-    String body;
+  private RequestBody createRequestBody(Object requestPayload) {
+    String jsonRepresentation;
     try {
-      body = objectMapper.writeValueAsString(payload);
+      jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
     } catch (JsonProcessingException e) {
       throw new HashicorpVaultException(e.getMessage(), e);
     }
-
-    Request request =
-        new Request.Builder()
-            .url(
-                String.format(
-                    "%s%s", getSecretDataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
-            .post(RequestBody.create(body, MediaType.get("application/json")))
-            .header(VAULT_TOKEN_HEADER, config.getVaultToken())
-            .build();
-
-    CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future =
-        new CompletableFuture<>();
-
-    okHttpClient
-        .newCall(request)
-        .enqueue(
-            new Callback() {
-              @Override
-              public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                future.completeExceptionally(new HashicorpVaultException(e.getMessage(), e));
-              }
-
-              @Override
-              public void onResponse(@NotNull Call call, @NotNull Response response)
-                  throws IOException {
-                if (response.isSuccessful()) {
-                  try (var body = response.body()) {
-                    if (body == null) {
-                      future.completeExceptionally(
-                          new EdcException("Received an empty body response from vault"));
-                    } else {
-                      CreateHashicorpVaultEntryResponsePayload payload =
-                          objectMapper.readValue(
-                              body.string(), CreateHashicorpVaultEntryResponsePayload.class);
-
-                      future.complete(Result.success(payload));
-                    }
-                  } catch (Exception e) {
-                    future.completeExceptionally(e);
-                  }
-                } else {
-                  future.complete(
-                      Result.failure(String.format("Call unsuccessful: %s", response.code())));
-                }
-              }
-            });
-    return future;
+    return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
   }
 
-  CompletableFuture<Result<Void>> destroySecret(String key) {
+  CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
+      @NonNull String key, @NonNull String value) {
+    key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+    String requestURI = String.join("/", getSecretDataUrl(), key);
+    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
+    CreateHashicorpVaultEntryRequestPayload requestPayload =
+        CreateHashicorpVaultEntryRequestPayload.builder()
+            .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
+            .build();
     Request request =
         new Request.Builder()
-            .url(
-                String.format(
-                    "%s%s", getSecretMetadataUrl(), URLEncoder.encode(key, StandardCharsets.UTF_8)))
-            .delete()
-            .header(VAULT_TOKEN_HEADER, config.getVaultToken())
+            .url(requestURI)
+            .headers(headers)
+            .post(createRequestBody(requestPayload))
             .build();
 
-    CompletableFuture<Result<Void>> future = new CompletableFuture<>();
+    CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> completableFuture =
+        new CompletableFuture<>();
     okHttpClient
         .newCall(request)
         .enqueue(
-            new Callback() {
-              @Override
-              public void onResponse(@NotNull Call call, @NotNull Response response) {
-                if (response.isSuccessful() || response.code() == 404) {
-                  future.complete(Result.success());
-                } else {
-                  future.complete(
-                      Result.failure(String.format("Call unsuccessful: %s", response.code())));
-                }
-              }
+            new OkHttpResponseCallback(
+                completableFuture,
+                (response) -> {
+                  if (response.isSuccessful()) {
+                    try (ResponseBody responseBody = response.body()) {
+                      if (responseBody == null) {
+                        completableFuture.completeExceptionally(
+                            new HashicorpVaultException("Received an empty body response from vault"));
 
-              public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                future.completeExceptionally(new HashicorpVaultException(e.getMessage(), e));
-              }
-            });
-    return future;
+                        return;
+                      }
+
+                      CreateHashicorpVaultEntryResponsePayload responsePayload =
+                          objectMapper.readValue(
+                              responseBody.string(),
+                              CreateHashicorpVaultEntryResponsePayload.class);
+
+                      completableFuture.complete(Result.success(responsePayload));
+                    } catch (Exception exception) {
+                      completableFuture.completeExceptionally(exception);
+                    }
+                    return;
+                  }
+
+                  completableFuture.complete(
+                      Result.failure(String.format(ERROR_TEMPLATE, response.code())));
+                }));
+
+    return completableFuture;
+  }
+
+  CompletableFuture<Result<Void>> destroySecret(@NonNull String key) {
+    key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+    String requestURI = String.join("/", getSecretMetadataUrl(), key);
+    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
+
+    Request request = new Request.Builder().url(requestURI).headers(headers).delete().build();
+
+    CompletableFuture<Result<Void>> completableFuture = new CompletableFuture<>();
+    okHttpClient
+        .newCall(request)
+        .enqueue(
+            new OkHttpResponseCallback(
+                completableFuture,
+                (response) -> {
+                  if (response.isSuccessful() || response.code() == 404) {
+                    completableFuture.complete(Result.success());
+
+                    return;
+                  }
+
+                  completableFuture.complete(
+                      Result.failure(String.format(ERROR_TEMPLATE, response.code())));
+                }));
+    return completableFuture;
+  }
+
+  @RequiredArgsConstructor
+  private static class OkHttpResponseCallback implements Callback {
+    @NonNull private final CompletableFuture<?> completableFuture;
+    @NonNull private final Consumer<Response> responseConsumer;
+
+    public void onFailure(@NotNull Call call, @NotNull IOException ioException) {
+      completableFuture.completeExceptionally(
+          new HashicorpVaultException(ioException.getMessage(), ioException));
+    }
+
+    @Override
+    public void onResponse(@NotNull Call call, @NotNull Response response) {
+      responseConsumer.accept(response);
+    }
   }
 }
