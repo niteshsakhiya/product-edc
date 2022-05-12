@@ -35,6 +35,8 @@ public class HashicorpVaultExtension implements VaultExtension {
   @EdcSetting private static final String VAULT_TIMEOUT_SECONDS = "edc.vault.timeout.seconds";
 
   private Vault vault;
+  private CertificateResolver certificateResolver;
+  private PrivateKeyResolver privateKeyResolver;
 
   @Override
   public String name() {
@@ -53,12 +55,12 @@ public class HashicorpVaultExtension implements VaultExtension {
 
   @Override
   public PrivateKeyResolver getPrivateKeyResolver() {
-    return new VaultPrivateKeyResolver(vault);
+    return privateKeyResolver;
   }
 
   @Override
   public CertificateResolver getCertificateResolver() {
-    return new HashicorpCertificateResolver(vault);
+    return certificateResolver;
   }
 
   @Override
@@ -80,6 +82,8 @@ public class HashicorpVaultExtension implements VaultExtension {
     HashicorpVaultClient client =
         new HashicorpVaultClient(config, httpClient, context.getTypeManager().getMapper());
     vault = new HashicorpVault(client, context.getMonitor(), vaultTimeoutDuration);
+    certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
+    privateKeyResolver = new VaultPrivateKeyResolver(vault);
 
     context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
   }

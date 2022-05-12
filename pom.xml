@@ -47,6 +47,12 @@
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <junit.platform.version>1.8.2</junit.platform.version>
         <mockito.version>1.10.19</mockito.version>
+        <org.projectlombok.lombok.version>1.18.20</org.projectlombok.lombok.version>
+        <org.bouncycastle.bcpkix-jdk15on.version>1.70</org.bouncycastle.bcpkix-jdk15on.version>
+        <com.squareup.okhttp3.okhttp.version>4.9.3</com.squareup.okhttp3.okhttp.version>
+        <org.testcontainers.version>1.16.3</org.testcontainers.version>
+        <org.slf4j.version>2.0.0-alpha1</org.slf4j.version>
+        <ch.qos.logback.logback-classic.version>1.2.6</ch.qos.logback.logback-classic.version>
     </properties>
 
     <distributionManagement>
@@ -167,6 +173,21 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
                 <version>${org.flywaydb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${org.projectlombok.lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${org.bouncycastle.bcpkix-jdk15on.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${com.squareup.okhttp3.okhttp.version}</version>
             </dependency>
 
             <!-- EDC Extensions -->
@@ -800,6 +821,12 @@
                 <artifactId>junit-extension</artifactId>
                 <version>${org.eclipse.dataspaceconnector.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.dataspaceconnector</groupId>
+                <artifactId>junit-extension</artifactId>
+                <version>${org.eclipse.dataspaceconnector.version}</version>
+                <classifier>test-fixtures</classifier>
+            </dependency>
 
             <!-- BOMs -->
             <dependency>
@@ -814,6 +841,12 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
                 <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -839,6 +872,31 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
                 <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${org.testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${org.slf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${org.slf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${ch.qos.logback.logback-classic.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
