@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -107,14 +108,12 @@ class HashicorpVaultClient {
 
   CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
       String key, String value) {
+      Map<String, String> entries = new HashMap<>();
+      entries.put(SECRET_KEY, value);
     CreateHashicorpVaultEntryRequestPayload payload =
         CreateHashicorpVaultEntryRequestPayload.builder()
             .data(
-                new HashMap<String, String>() {
-                  {
-                    put(SECRET_KEY, value);
-                  }
-                })
+                    entries)
             .build();
     String body;
     try {
