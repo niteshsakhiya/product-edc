@@ -108,13 +108,10 @@ class HashicorpVaultClient {
 
   CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
       String key, String value) {
-      Map<String, String> entries = new HashMap<>();
-      entries.put(SECRET_KEY, value);
+    Map<String, String> entries = new HashMap<>();
+    entries.put(SECRET_KEY, value);
     CreateHashicorpVaultEntryRequestPayload payload =
-        CreateHashicorpVaultEntryRequestPayload.builder()
-            .data(
-                    entries)
-            .build();
+        CreateHashicorpVaultEntryRequestPayload.builder().data(entries).build();
     String body;
     try {
       body = objectMapper.writeValueAsString(payload);
@@ -144,8 +141,7 @@ class HashicorpVaultClient {
               }
 
               @Override
-              public void onResponse(@NotNull Call call, @NotNull Response response)
-                  throws IOException {
+              public void onResponse(@NotNull Call call, @NotNull Response response) {
                 if (response.isSuccessful()) {
                   try (var body = response.body()) {
                     if (body == null) {

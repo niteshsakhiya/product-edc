@@ -14,6 +14,12 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
+import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_URL;
+
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
@@ -31,13 +37,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.vault.VaultContainer;
 
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.UUID;
-
-import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_TOKEN;
-import static org.eclipse.dataspaceconnector.core.security.hashicorp.HashicorpVaultExtension.VAULT_URL;
-
 @Testcontainers
 @ExtendWith(EdcExtension.class)
 public class HashicorpCertificateResolverTest {
@@ -53,32 +52,32 @@ public class HashicorpCertificateResolverTest {
   @BeforeEach
   void beforeEach(EdcExtension extension) {
     extension.setConfiguration(
-      new HashMap<>() {
-        {
-          put(
-              VAULT_URL,
-              String.format(
-                  "http://%s:%s", vaultContainer.getHost(), vaultContainer.getFirstMappedPort()));
-          put(VAULT_TOKEN, TEST_TOKEN);
-        }
-      });
+        new HashMap<>() {
+          {
+            put(
+                VAULT_URL,
+                String.format(
+                    "http://%s:%s", vaultContainer.getHost(), vaultContainer.getFirstMappedPort()));
+            put(VAULT_TOKEN, TEST_TOKEN);
+          }
+        });
     extension.registerSystemExtension(ServiceExtension.class, testExtension);
   }
 
   @Test
   @SneakyThrows
   void resolveCertificate_success() {
-      String key = UUID.randomUUID().toString();
-      X509TestCertificateGenerator testCertificateGenerator = new X509TestCertificateGenerator();
-      X509Certificate certificateExpected = testCertificateGenerator.generateCertificate(5, "Test");
-      String pem = testCertificateGenerator.convertToPem(certificateExpected);
+    String key = UUID.randomUUID().toString();
+    X509TestCertificateGenerator testCertificateGenerator = new X509TestCertificateGenerator();
+    X509Certificate certificateExpected = testCertificateGenerator.generateCertificate(5, "Test");
+    String pem = testCertificateGenerator.convertToPem(certificateExpected);
 
-      Vault vault = testExtension.getVault();
-      vault.storeSecret(key, pem);
-      CertificateResolver resolver = testExtension.getCertificateResolver();
-      X509Certificate certificateResult = resolver.resolveCertificate(key);
+    Vault vault = testExtension.getVault();
+    vault.storeSecret(key, pem);
+    CertificateResolver resolver = testExtension.getCertificateResolver();
+    X509Certificate certificateResult = resolver.resolveCertificate(key);
 
-      Assertions.assertEquals(certificateExpected, certificateResult);
+    Assertions.assertEquals(certificateExpected, certificateResult);
   }
 
   @Test

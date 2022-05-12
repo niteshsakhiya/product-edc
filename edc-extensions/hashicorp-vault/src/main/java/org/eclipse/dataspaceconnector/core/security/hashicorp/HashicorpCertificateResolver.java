@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
-
 /** Resolves an X.509 certificate in Hashicorp vault. */
 @RequiredArgsConstructor
 public class HashicorpCertificateResolver implements CertificateResolver {
@@ -54,8 +53,9 @@ public class HashicorpCertificateResolver implements CertificateResolver {
             new ByteArrayInputStream(certificateRepresentation.getBytes(StandardCharsets.UTF_8)))) {
       PEMParser pemParser = new PEMParser(reader);
       X509CertificateHolder x509CertificateHolder = (X509CertificateHolder) pemParser.readObject();
-      if (x509CertificateHolder==null) {
-        monitor.warning(String.format("Expected PEM certificate on key %s, but value not PEM.", id));
+      if (x509CertificateHolder == null) {
+        monitor.warning(
+            String.format("Expected PEM certificate on key %s, but value not PEM.", id));
         return null;
       }
       return CONVERTER.getCertificate(x509CertificateHolder);
