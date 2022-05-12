@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
-import java.security.cert.X509Certificate;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.security.cert.X509Certificate;
+import java.util.UUID;
 
 class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
 
@@ -28,9 +29,8 @@ class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
   @SneakyThrows
   void resolveCertificate_success() {
     String key = UUID.randomUUID().toString();
-    X509TestCertificateGenerator testCertificateGenerator = new X509TestCertificateGenerator();
-    X509Certificate certificateExpected = testCertificateGenerator.generateCertificate(5, "Test");
-    String pem = testCertificateGenerator.convertToPem(certificateExpected);
+    X509Certificate certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
+    String pem = X509CertificateTestUtil.convertToPem(certificateExpected);
 
     Vault vault = getVault();
     vault.storeSecret(key, pem);

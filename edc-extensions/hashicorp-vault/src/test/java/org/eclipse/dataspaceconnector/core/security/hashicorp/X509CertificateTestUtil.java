@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -52,13 +53,14 @@ import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.testcontainers.shaded.org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
-public class X509TestCertificateGenerator {
+@UtilityClass
+final class X509CertificateTestUtil {
   private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
-  private final Provider PROVIDER = new BouncyCastleProvider();
-  private final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
+  private static final Provider PROVIDER = new BouncyCastleProvider();
+  private static final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
       new JcaX509CertificateConverter().setProvider(PROVIDER);
 
-  X509Certificate generateCertificate(int validity, String cn)
+  static X509Certificate generateCertificate(int validity, String cn)
       throws CertificateException, OperatorCreationException, IOException,
           NoSuchAlgorithmException {
 
@@ -93,14 +95,14 @@ public class X509TestCertificateGenerator {
     return JCA_X509_CERTIFICATE_CONVERTER.getCertificate(certificateBuilder.build(contentSigner));
   }
 
-  private KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+  private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", PROVIDER);
     keyPairGenerator.initialize(1024, new SecureRandom());
 
     return keyPairGenerator.generateKeyPair();
   }
 
-  private SubjectKeyIdentifier createSubjectKeyId(PublicKey publicKey)
+  private static SubjectKeyIdentifier createSubjectKeyId(PublicKey publicKey)
       throws OperatorCreationException {
     SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
     DigestCalculator digCalc =
@@ -108,7 +110,7 @@ public class X509TestCertificateGenerator {
     return new X509ExtensionUtils(digCalc).createSubjectKeyIdentifier(publicKeyInfo);
   }
 
-  private AuthorityKeyIdentifier createAuthorityKeyId(PublicKey publicKey)
+  private static AuthorityKeyIdentifier createAuthorityKeyId(PublicKey publicKey)
       throws OperatorCreationException {
     SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
     DigestCalculator digCalc =
@@ -117,7 +119,7 @@ public class X509TestCertificateGenerator {
   }
 
   @SneakyThrows
-  String convertToPem(X509Certificate certificate) {
+  static String convertToPem(X509Certificate certificate) {
     try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
       try (OutputStreamWriter writer = new OutputStreamWriter(stream)) {
         JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
