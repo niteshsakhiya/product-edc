@@ -119,7 +119,7 @@ ingresses:
     ##
     ## The hostname to be used to precisely map incoming traffic onto the underlying network service
     ##
-    hostname: "edc-dataplane.local"
+    hostname: "edc-dataplane-consumer.local"
     ##
     ## Additional ingress annotations to add
     ##
