@@ -16,18 +16,14 @@ package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Provider;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMParser;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -50,18 +46,15 @@ public class HashicorpCertificateResolver implements CertificateResolver {
     if (certificateRepresentation == null) {
       return null;
     }
-    try (Reader reader =
-        new InputStreamReader(
-            new ByteArrayInputStream(certificateRepresentation.getBytes(StandardCharsets.UTF_8)))) {
-      PEMParser pemParser = new PEMParser(reader);
-      X509CertificateHolder x509CertificateHolder = (X509CertificateHolder) pemParser.readObject();
-      if (x509CertificateHolder == null) {
+    try (InputStream inputStream =
+        new ByteArrayInputStream(certificateRepresentation.getBytes(StandardCharsets.UTF_8))) {
+      X509Certificate x509Certificate = PemUtil.readX509Certificate(inputStream);
+      if (x509Certificate == null) {
         monitor.warning(
             String.format("Expected PEM certificate on key %s, but value not PEM.", id));
-        return null;
       }
-      return CONVERTER.getCertificate(x509CertificateHolder);
-    } catch (IOException | CertificateException e) {
+      return x509Certificate;
+    } catch (IOException e) {
       throw new EdcException(e.getMessage(), e);
     }
   }

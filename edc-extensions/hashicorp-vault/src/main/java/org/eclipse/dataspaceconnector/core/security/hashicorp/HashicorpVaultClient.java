@@ -20,10 +20,26 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Call;
@@ -38,43 +54,100 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-@RequiredArgsConstructor
 class HashicorpVaultClient {
+  static final String VAULT_DATA_ENTRY_NAME = "content";
   private static final String ERROR_TEMPLATE = "Call unsuccessful: %s";
   private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
+  private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
   private static final MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
   private static final String VAULT_PATH_V1_SECRET_DATA = "/v1/secret/data";
   private static final String VAULT_PATH_V1_SECRET_METADATA = "/v1/secret/metadata";
-
-  static final String VAULT_DATA_ENTRY_NAME = "content";
-
   private final HashicorpVaultClientConfig config;
-  private final OkHttpClient okHttpClient;
   private final ObjectMapper objectMapper;
+  private final OkHttpClient okHttpClient;
 
-  protected String getBaseUrl() {
-    String baseUrl = config.getVaultUrl();
+  HashicorpVaultClient(
+      @NonNull HashicorpVaultClientConfig config, @NonNull ObjectMapper objectMapper) {
+    this.config = config;
+    this.objectMapper = objectMapper;
 
-    if (baseUrl.endsWith("/")) {
-      baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+    X509TrustManager trustManager = null;
+    if (config.getCertificateCa() != null) {
+      trustManager = buildTrustManager(config.getCertificateCa());
     }
 
-    return baseUrl;
+    SSLContext sslContext = null;
+    if (config.getCertificate() != null && config.getCertificatePrivateKey() != null) {
+      sslContext =
+          buildSslContext(config.getCertificate(), config.getCertificatePrivateKey(), trustManager);
+    }
+
+    OkHttpClient.Builder builder =
+        new OkHttpClient.Builder()
+            .callTimeout(config.getTimeout())
+            .readTimeout(config.getTimeout());
+
+    if (sslContext != null) {
+      builder = builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
+    }
+
+    okHttpClient = builder.build();
   }
 
-  private String getSecretDataUrl() {
-    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_DATA)).toString();
+  private static X509TrustManager buildTrustManager(@NonNull X509Certificate caCert) {
+    try {
+      final TrustManagerFactory trustManagerFactory =
+          TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+      final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+      keyStore.load(null);
+      keyStore.setCertificateEntry("caCert", caCert);
+      trustManagerFactory.init(keyStore);
+      return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+    } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
   }
 
-  private String getSecretMetadataUrl() {
-    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_METADATA)).toString();
+  private static SSLContext buildSslContext(
+      @NonNull X509Certificate cert, @NonNull PrivateKey privateKey, TrustManager trustManager) {
+    try {
+      TrustManager[] trustManagers = null;
+      if (trustManager != null) {
+        trustManagers = new TrustManager[] {trustManager};
+      }
+      final KeyManagerFactory keyManagerFactory =
+          KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+      keyStore.load(null, "password".toCharArray());
+      keyStore.setCertificateEntry("clientCert", cert);
+      String pass = UUID.randomUUID().toString();
+      keyStore.setKeyEntry("key", privateKey, pass.toCharArray(), new Certificate[] {cert});
+      keyManagerFactory.init(keyStore, pass.toCharArray());
+      KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+
+      final SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(keyManagers, trustManagers, null);
+      return sslContext;
+    } catch (CertificateException
+        | IOException
+        | NoSuchAlgorithmException
+        | KeyStoreException
+        | KeyManagementException
+        | UnrecoverableKeyException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
   }
 
   @NotNull
   CompletableFuture<Result<String>> getSecretValue(@NonNull String key) {
     key = URLEncoder.encode(key, StandardCharsets.UTF_8);
     String requestURI = String.join("/", getSecretDataUrl(), key);
-    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
+    Headers.Builder headersBuilder =
+        new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
+    if (config.getVaultToken() != null) {
+      headersBuilder = headersBuilder.add(VAULT_TOKEN_HEADER, config.getVaultToken());
+    }
+    Headers headers = headersBuilder.build();
     Request request = new Request.Builder().url(requestURI).headers(headers).get().build();
 
     CompletableFuture<Result<String>> completableFuture = new CompletableFuture<>();
@@ -121,21 +194,16 @@ class HashicorpVaultClient {
     return completableFuture;
   }
 
-  private RequestBody createRequestBody(Object requestPayload) {
-    String jsonRepresentation;
-    try {
-      jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
-    } catch (JsonProcessingException e) {
-      throw new HashicorpVaultException(e.getMessage(), e);
-    }
-    return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
-  }
-
   CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> setSecret(
       @NonNull String key, @NonNull String value) {
     key = URLEncoder.encode(key, StandardCharsets.UTF_8);
     String requestURI = String.join("/", getSecretDataUrl(), key);
-    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
+    Headers.Builder headersBuilder =
+        new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
+    if (config.getVaultToken() != null) {
+      headersBuilder = headersBuilder.add(VAULT_TOKEN_HEADER, config.getVaultToken());
+    }
+    Headers headers = headersBuilder.build();
     CreateHashicorpVaultEntryRequestPayload requestPayload =
         CreateHashicorpVaultEntryRequestPayload.builder()
             .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
@@ -187,8 +255,12 @@ class HashicorpVaultClient {
   CompletableFuture<Result<Void>> destroySecret(@NonNull String key) {
     key = URLEncoder.encode(key, StandardCharsets.UTF_8);
     String requestURI = String.join("/", getSecretMetadataUrl(), key);
-    Headers headers = new Headers.Builder().add(VAULT_TOKEN_HEADER, config.getVaultToken()).build();
-
+    Headers.Builder headersBuilder =
+        new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
+    if (config.getVaultToken() != null) {
+      headersBuilder = headersBuilder.add(VAULT_TOKEN_HEADER, config.getVaultToken());
+    }
+    Headers headers = headersBuilder.build();
     Request request = new Request.Builder().url(requestURI).headers(headers).delete().build();
 
     CompletableFuture<Result<Void>> completableFuture = new CompletableFuture<>();
@@ -208,6 +280,34 @@ class HashicorpVaultClient {
                       Result.failure(String.format(ERROR_TEMPLATE, response.code())));
                 }));
     return completableFuture;
+  }
+
+  protected String getBaseUrl() {
+    String baseUrl = config.getVaultUrl();
+
+    if (baseUrl.endsWith("/")) {
+      baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+    }
+
+    return baseUrl;
+  }
+
+  private String getSecretDataUrl() {
+    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_DATA)).toString();
+  }
+
+  private String getSecretMetadataUrl() {
+    return URI.create(String.join("", getBaseUrl(), VAULT_PATH_V1_SECRET_METADATA)).toString();
+  }
+
+  private RequestBody createRequestBody(Object requestPayload) {
+    String jsonRepresentation;
+    try {
+      jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
+    } catch (JsonProcessingException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
+    return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
   }
 
   @RequiredArgsConstructor

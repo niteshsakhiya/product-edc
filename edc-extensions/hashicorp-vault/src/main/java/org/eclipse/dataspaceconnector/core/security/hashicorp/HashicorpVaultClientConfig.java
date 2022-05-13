@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +25,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 class HashicorpVaultClientConfig {
-  // TODO: account for certificate authentication
   private final String vaultUrl;
   private final String vaultToken;
+  private final Duration timeout;
+  private final X509Certificate certificate;
+  private final X509Certificate certificateCa;
+  private final PrivateKey certificatePrivateKey;
 }
