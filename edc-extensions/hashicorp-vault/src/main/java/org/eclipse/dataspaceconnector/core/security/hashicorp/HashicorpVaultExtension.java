@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.Objects;
+import lombok.NonNull;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -33,21 +33,18 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.jetbrains.annotations.Nullable;
 
 public class HashicorpVaultExtension implements VaultExtension {
 
-  @EdcSetting public static final String VAULT_URL = "edc.vault.url";
-
+  @EdcSetting(required = true) public static final String VAULT_URL = "edc.vault.url";
   @EdcSetting public static final String VAULT_TOKEN = "edc.vault.token";
   @EdcSetting public static final String VAULT_CERTIFICATE = "edc.vault.certificate";
   @EdcSetting public static final String VAULT_CERTIFICATE_PRIVATEKEY = "edc.vault.certificate.key";
-
-  @EdcSetting
-  public static final String VAULT_CERTIFICATE_PRIVATEKEY_PASSWORD =
-      "edc.vault.certificate.key.password";
-
+  @EdcSetting public static final String VAULT_CERTIFICATE_PRIVATEKEY_PASSWORD = "edc.vault.certificate.key.password";
   @EdcSetting public static final String VAULT_CERTIFICATE_CA = "edc.vault.certificate.ca";
   @EdcSetting private static final String VAULT_TIMEOUT_SECONDS = "edc.vault.timeout.seconds";
+
   private Vault vault;
   private CertificateResolver certificateResolver;
   private PrivateKeyResolver privateKeyResolver;
@@ -79,7 +76,35 @@ public class HashicorpVaultExtension implements VaultExtension {
 
   @Override
   public void initializeVault(ServiceExtensionContext context) {
-    String vaultUrl = Objects.requireNonNull(context.getSetting(VAULT_URL, null));
+    HashicorpVaultClientConfig config = loadHashicorpVaultClientConfig(context);
+
+    HashicorpVaultClient client =
+        new HashicorpVaultClient(config, context.getTypeManager().getMapper());
+
+    vault = new HashicorpVault(client, context.getMonitor(), config.getTimeout());
+    certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
+    privateKeyResolver = new VaultPrivateKeyResolver(vault);
+
+    context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
+  }
+
+  private HashicorpVaultClientConfig loadHashicorpVaultClientConfig(
+      ServiceExtensionContext context) {
+
+    String vaultUrl = context.getSetting(VAULT_URL, null);
+    if (vaultUrl == null) {
+      throw new HashicorpVaultException(String.format("Vault URL (%s) must be defined", VAULT_URL));
+    }
+
+    String vaultTimeoutString = context.getSetting(VAULT_TIMEOUT_SECONDS, "30");
+    Duration vaultTimeoutDuration;
+    try {
+      int vaultTimeoutInteger = Math.max(0, Integer.parseInt(vaultTimeoutString));
+      vaultTimeoutDuration = Duration.ofSeconds(vaultTimeoutInteger);
+    } catch (NumberFormatException numberFormatException) {
+      throw new HashicorpVaultException(
+          String.format("Vault Timeout (%s) must be Integer", VAULT_TIMEOUT_SECONDS));
+    }
 
     String vaultToken = context.getSetting(VAULT_TOKEN, null);
     String vaultCertificate = context.getSetting(VAULT_CERTIFICATE, null);
@@ -88,49 +113,53 @@ public class HashicorpVaultExtension implements VaultExtension {
     String vaultCertificatePrivateKeyPassword =
         context.getSetting(VAULT_CERTIFICATE_PRIVATEKEY_PASSWORD, null);
 
-    if (vaultToken != null && vaultCertificate != null) {
+    if (vaultToken == null && (vaultCertificate == null || vaultCertificatePrivateKey == null)) {
       throw new EdcException(
           String.format(
-              "For Vault authentication either [%s] or [%s, %s] is required",
+              "For Vault authentication either [%s] or [%s, %s] are required",
               VAULT_TOKEN, VAULT_CERTIFICATE, VAULT_CERTIFICATE_PRIVATEKEY));
     }
 
-    X509Certificate cert = null;
+    X509Certificate x509Certificate = null;
     if (vaultCertificate != null) {
-      cert = loadCertificate(vaultCertificate);
+      x509Certificate = loadCertificate(vaultCertificate);
+      if (x509Certificate == null) {
+        throw new HashicorpVaultException(
+            String.format(
+                "Vault client X509Certificate (%s) was not resolvable", VAULT_CERTIFICATE));
+      }
     }
-    X509Certificate caCert = null;
+    X509Certificate caX509Certificate = null;
     if (vaultCertificateCa != null) {
-      caCert = loadCertificate(vaultCertificateCa);
+      caX509Certificate = loadCertificate(vaultCertificateCa);
+      if (caX509Certificate == null) {
+        throw new HashicorpVaultException(
+            String.format(
+                "Vault CA X509Certificate (%s) was not resolvable", VAULT_CERTIFICATE_CA));
+      }
     }
+
     PrivateKey privateKey = null;
     if (vaultCertificatePrivateKey != null) {
       privateKey = loadPrivateKey(vaultCertificatePrivateKey, vaultCertificatePrivateKeyPassword);
+      if (privateKey == null) {
+        throw new HashicorpVaultException(
+            String.format(
+                "Vault client private-key (%s) was not resolvable", VAULT_CERTIFICATE_PRIVATEKEY));
+      }
     }
-    String vaultTimeoutString = context.getSetting(VAULT_TIMEOUT_SECONDS, "30");
-    int vaultTimeoutInteger = Math.max(0, Integer.parseInt(vaultTimeoutString));
-    Duration vaultTimeoutDuration = Duration.ofSeconds(vaultTimeoutInteger);
 
-    HashicorpVaultClientConfig config =
-        HashicorpVaultClientConfig.builder()
-            .vaultUrl(vaultUrl)
-            .vaultToken(vaultToken)
-            .certificate(cert)
-            .certificateCa(caCert)
-            .certificatePrivateKey(privateKey)
-            .timeout(vaultTimeoutDuration)
-            .build();
-
-    HashicorpVaultClient client =
-        new HashicorpVaultClient(config, context.getTypeManager().getMapper());
-    vault = new HashicorpVault(client, context.getMonitor(), vaultTimeoutDuration);
-    certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
-    privateKeyResolver = new VaultPrivateKeyResolver(vault);
-
-    context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
+    return HashicorpVaultClientConfig.builder()
+        .vaultUrl(vaultUrl)
+        .vaultToken(vaultToken)
+        .certificate(x509Certificate)
+        .certificateCa(caX509Certificate)
+        .certificatePrivateKey(privateKey)
+        .timeout(vaultTimeoutDuration)
+        .build();
   }
 
-  private X509Certificate loadCertificate(String representation) {
+  private X509Certificate loadCertificate(@NonNull String representation) {
     try {
       Path path = Paths.get(representation);
       if (Files.exists(path)) {
@@ -144,11 +173,11 @@ public class HashicorpVaultExtension implements VaultExtension {
         return PemUtil.readX509Certificate(inputStream);
       }
     } catch (Exception exception) {
-      throw new EdcException(exception.getMessage(), exception);
+      throw new HashicorpVaultException(exception.getMessage(), exception);
     }
   }
 
-  private PrivateKey loadPrivateKey(String representation, String password) {
+  private PrivateKey loadPrivateKey(@NonNull String representation, @Nullable String password) {
     try {
       Path path = Paths.get(representation);
       if (Files.exists(path)) {
@@ -162,7 +191,7 @@ public class HashicorpVaultExtension implements VaultExtension {
         return PemUtil.readPrivateKey(inputStream, password);
       }
     } catch (Exception exception) {
-      throw new EdcException(exception.getMessage(), exception);
+      throw new HashicorpVaultException(exception.getMessage(), exception);
     }
   }
 }
