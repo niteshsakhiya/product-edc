@@ -10,13 +10,14 @@ The Data-Plane does the heavy lifting of transferring and receiving data streams
 
 Depending on your environment there are different derivatives of the control-plane prepared:
 
-* [edc-controlplane-cosmosdb](edc-controlplane/edc-controlplane-cosmosdb)
-* [edc-controlplane-memory](edc-controlplane/edc-controlplane-memory)
-* [edc-controlplane-postgresql](edc-controlplane/edc-controlplane-postgresql)
+* [edc-controlplane-cosmosdb](edc-controlplanes/edc-controlplane-cosmosdb)
+* [edc-controlplane-memory](edc-controlplanes/edc-controlplane-memory)
+* [edc-controlplane-postgresql](edc-controlplanes/edc-controlplane-postgresql)
 
-Derivatives of the Data-Plane can be found here
+Derivatives of the Data-Plane can be found here:
 
-* [edc-dataplane](edc-dataplane)
+* [(general) edc-dataplane](edc-dataplanes/edc-dataplane)
+* [edc-dataplane-catenax-at-home](edc-dataplanes/edc-dataplane-catenax-at-home)
 
 ## Prerequisites
 
@@ -43,6 +44,7 @@ cd edc && ./gradlew publishToMavenLocal
 
 The Catena-X milestone 3 release can be found in the `release/0.0.1` branch.
 You can download the container image from our [repository](https://github.com/catenax-ng/product-edc/pkgs/container/product-edc%2Fedc-controlplane-postgresql).
+
 ```bash
 docker pull ghcr.io/catenax-ng/product-edc/edc-controlplane-postgresql:0.0.1
 ```

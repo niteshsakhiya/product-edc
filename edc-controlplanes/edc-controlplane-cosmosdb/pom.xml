@@ -13,14 +13,14 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>net.catenax.edc</groupId>
-        <artifactId>product-edc-parent</artifactId>
+        <artifactId>edc-controlplanes</artifactId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
-    <artifactId>edc-dataplane</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>edc-controlplane-cosmosdb</artifactId>
     <packaging>jar</packaging>
 
     <build>
@@ -33,7 +33,7 @@
                 </includes>
             </resource>
             <resource>
-                <directory>../</directory>
+                <directory>../../</directory>
                 <targetPath>META-INF</targetPath>
                 <includes>
                     <include>NOTICE.md</include>
@@ -76,11 +76,28 @@
         </plugins>
     </build>
 
+
     <dependencies>
+        <!-- CX Extensions -->
+        <dependency>
+            <groupId>net.catenax.edc.extensions</groupId>
+            <artifactId>aas-controller</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.catenax.edc.extensions</groupId>
+            <artifactId>business-partner-validation</artifactId>
+        </dependency>
+
         <!-- Config -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>filesystem-configuration</artifactId>
+        </dependency>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>auth-tokenbased</artifactId>
         </dependency>
 
         <!-- Vault -->
@@ -102,19 +119,97 @@
         <!-- APIs -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>data-plane-framework</artifactId>
+            <artifactId>control-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>data-plane-http</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>data-plane-api</artifactId>
+            <artifactId>data-management-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>observability-api</artifactId>
+        </dependency>
+
+        <!-- IDS -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-api-configuration</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-api-multipart-dispatcher-v1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-api-multipart-endpoint-v1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-api-transform-v1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>ids-token-validation</artifactId>
+        </dependency>
+
+        <!-- Stores -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>assetindex-cosmos</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-cosmos</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>contract-definition-store-cosmos</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-cosmos</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>contract-negotiation-store-cosmos</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-cosmos</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>policy-store-cosmos</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-cosmos</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>transfer-process-store-cosmos</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-cosmos</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Core -->
@@ -125,6 +220,30 @@
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>core-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>transfer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>contract</artifactId>
+        </dependency>
+
+        <!-- Data-Plane -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>data-plane-transfer-sync</artifactId>
+        </dependency>
+
+        <!-- IAM -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>oauth2-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>iam-daps</artifactId>
         </dependency>
 
         <!-- Telemetry -->
@@ -154,7 +273,17 @@
             <artifactId>http</artifactId>
         </dependency>
 
+        <dependency>
+            <!-- http-posts EndpointDataReference to configured external service -->
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>http-receiver</artifactId>
+        </dependency>
+
         <!-- Other -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-cosmos</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-identity</artifactId>

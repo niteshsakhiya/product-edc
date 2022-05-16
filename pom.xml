@@ -23,8 +23,8 @@
 
     <modules>
         <module>edc-extensions</module>
-        <module>edc-controlplane</module>
-        <module>edc-dataplane</module>
+        <module>edc-controlplanes</module>
+        <module>edc-dataplanes</module>
     </modules>
 
     <inceptionYear>2022</inceptionYear>

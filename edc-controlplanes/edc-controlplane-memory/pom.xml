@@ -14,13 +14,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <artifactId>edc-controlplanes</artifactId>
         <groupId>net.catenax.edc</groupId>
-        <artifactId>edc-controlplane</artifactId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>edc-controlplane-cosmosdb</artifactId>
+    <artifactId>edc-controlplane-memory</artifactId>
     <packaging>jar</packaging>
 
     <build>
@@ -75,7 +75,6 @@
             </plugin>
         </plugins>
     </build>
-
 
     <dependencies>
         <!-- CX Extensions -->
@@ -160,58 +159,6 @@
             <artifactId>ids-token-validation</artifactId>
         </dependency>
 
-        <!-- Stores -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>assetindex-cosmos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.azure</groupId>
-                    <artifactId>azure-cosmos</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>contract-definition-store-cosmos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.azure</groupId>
-                    <artifactId>azure-cosmos</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>contract-negotiation-store-cosmos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.azure</groupId>
-                    <artifactId>azure-cosmos</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>policy-store-cosmos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.azure</groupId>
-                    <artifactId>azure-cosmos</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>transfer-process-store-cosmos</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.azure</groupId>
-                    <artifactId>azure-cosmos</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- Core -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
@@ -239,11 +186,7 @@
         <!-- IAM -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>oauth2-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>iam-daps</artifactId>
+            <artifactId>iam-mock</artifactId>
         </dependency>
 
         <!-- Telemetry -->
@@ -262,6 +205,7 @@
 
         <!-- Logging -->
         <dependency>
+            <!-- http-posts EndpointDataReference to configured external service -->
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>jdk-logger-monitor</artifactId>
         </dependency>
@@ -282,10 +226,6 @@
         <!-- Other -->
         <dependency>
             <groupId>com.azure</groupId>
-            <artifactId>azure-cosmos</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.azure</groupId>
             <artifactId>azure-identity</artifactId>
         </dependency>
         <dependency>
@@ -293,6 +233,7 @@
             <artifactId>azure-security-keyvault-secrets</artifactId>
         </dependency>
     </dependencies>
+
 
     <profiles>
         <profile>

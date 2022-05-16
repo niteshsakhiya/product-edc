@@ -3,7 +3,7 @@
 ### Building
 
 ```shell
-./mvnw -pl .,edc-controlplane/edc-controlplane-cosmosdb -am package -Pwith-docker-image
+./mvnw -pl .,edc-controlplanes/edc-controlplane-cosmosdb -am package -Pwith-docker-image
 ```
 
 ### Key Vault Setup

@@ -14,13 +14,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>edc-controlplane</artifactId>
+        <artifactId>edc-controlplanes</artifactId>
         <groupId>net.catenax.edc</groupId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>edc-controlplane-memory</artifactId>
+    <artifactId>edc-controlplane-postgresql</artifactId>
     <packaging>jar</packaging>
 
     <build>
@@ -76,6 +76,7 @@
         </plugins>
     </build>
 
+
     <dependencies>
         <!-- CX Extensions -->
         <dependency>
@@ -85,6 +86,10 @@
         <dependency>
             <groupId>net.catenax.edc.extensions</groupId>
             <artifactId>business-partner-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.catenax.edc.extensions</groupId>
+            <artifactId>postgresql-migration</artifactId>
         </dependency>
 
         <!-- Config -->
@@ -159,6 +164,28 @@
             <artifactId>ids-token-validation</artifactId>
         </dependency>
 
+        <!-- Stores -->
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>asset-index-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>contractdefinition-store-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>contractnegotiation-store-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>transfer-process-store-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>policy-store-sql</artifactId>
+        </dependency>
+
         <!-- Core -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
@@ -186,7 +213,11 @@
         <!-- IAM -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>iam-mock</artifactId>
+            <artifactId>oauth2-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>iam-daps</artifactId>
         </dependency>
 
         <!-- Telemetry -->
@@ -205,7 +236,6 @@
 
         <!-- Logging -->
         <dependency>
-            <!-- http-posts EndpointDataReference to configured external service -->
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>jdk-logger-monitor</artifactId>
         </dependency>
@@ -215,6 +245,15 @@
             <!-- includes jetty and jersey -->
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>apache-commons-pool-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>transaction-local</artifactId>
         </dependency>
 
         <dependency>
@@ -232,6 +271,10 @@
             <groupId>com.azure</groupId>
             <artifactId>azure-security-keyvault-secrets</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
     </dependencies>
 
 
@@ -246,11 +289,11 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <!--
-                            NOTE: To build and tag docker images the `docker` executable needs to
-                                  be on the PATH to be used by the exec-maven-plugin plugin
-                        -->
                         <executions>
+                            <!--
+                                NOTE: To build and tag docker images the `docker` executable needs to
+                                      be on the PATH to be used by the exec-maven-plugin plugin
+                            -->
                             <execution>
                                 <id>docker-build-${project.artifactId}:${project.version}</id>
                                 <phase>package</phase>

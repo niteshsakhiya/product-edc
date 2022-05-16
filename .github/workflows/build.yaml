@@ -65,7 +65,7 @@ jobs:
     -
       name: Build edc-dataplane
       run: |-
-        ./mvnw -s settings.xml -B -pl .,edc-dataplane -am verify
+        ./mvnw -s settings.xml -B -pl .,edc-dataplanes/edc-dataplane -am verify
       env:
         GITHUB_PACKAGE_USERNAME: ${{ github.actor }}
         GITHUB_PACKAGE_PASSWORD: ${{ secrets.CXNG_GHCR_PAT }}
@@ -87,10 +87,10 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: edc-dataplane/src/main/docker/Dockerfile
+        file: edc-dataplanes/edc-dataplane/src/main/docker/Dockerfile
         build-args: |
-          JAR=edc-dataplane/target/edc-dataplane.jar
-          LIB=edc-dataplane/target/lib
+          JAR=edc-dataplanes/edc-dataplane/target/edc-dataplane.jar
+          LIB=edc-dataplanes/edc-dataplane/target/lib
         push: |
           ${{ (needs.secret-presence.outputs.CXNG_GHCR_PAT && github.event_name != 'pull_request' && 'true') || 'false' }}
         tags: ${{ steps.edc_dataplane_meta.outputs.tags }}
@@ -109,7 +109,7 @@ jobs:
         appname: 'product-edc/edc-dataplane'
         createprofile: true
         version: ${{ github.ref }}
-        filepath: edc-dataplane/target/edc-dataplane.jar
+        filepath: edc-dataplanes/edc-dataplane/target/edc-dataplane.jar
         vid: ${{ secrets.VERACODE_ID }}
         vkey: ${{ secrets.VERACODE_SECRET_KEY }}
 
@@ -150,7 +150,7 @@ jobs:
     -
       name: Build edc-controlplane-memory
       run: |-
-        ./mvnw -s settings.xml -B -pl .,edc-controlplane/edc-controlplane-memory -am verify
+        ./mvnw -s settings.xml -B -pl .,edc-controlplanes/edc-controlplane-memory -am verify
       env:
         GITHUB_PACKAGE_USERNAME: ${{ github.actor }}
         GITHUB_PACKAGE_PASSWORD: ${{ secrets.CXNG_GHCR_PAT }}
@@ -172,10 +172,10 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: edc-controlplane/edc-controlplane-memory/src/main/docker/Dockerfile
+        file: edc-controlplanes/edc-controlplane-memory/src/main/docker/Dockerfile
         build-args: |
-          JAR=edc-controlplane/edc-controlplane-memory/target/edc-controlplane-memory.jar
-          LIB=edc-controlplane/edc-controlplane-memory/target/lib
+          JAR=edc-controlplanes/edc-controlplane-memory/target/edc-controlplane-memory.jar
+          LIB=edc-controlplanes/edc-controlplane-memory/target/lib
         push: |
           ${{ (needs.secret-presence.outputs.CXNG_GHCR_PAT && github.event_name != 'pull_request' && 'true') || 'false' }}
         tags: ${{ steps.edc_controlplane_memory_meta.outputs.tags }}
@@ -194,7 +194,7 @@ jobs:
         appname: 'product-edc/edc-controlplane-memory'
         createprofile: true
         version: ${{ github.ref }}
-        filepath: edc-controlplane/edc-controlplane-memory/target/edc-controlplane-memory.jar
+        filepath: edc-controlplanes/edc-controlplane-memory/target/edc-controlplane-memory.jar
         vid: ${{ secrets.VERACODE_ID }}
         vkey: ${{ secrets.VERACODE_SECRET_KEY }}
 
@@ -235,7 +235,7 @@ jobs:
     -
       name: Build edc-controlplane-cosmosdb
       run: |-
-        ./mvnw -s settings.xml -B -pl .,edc-controlplane/edc-controlplane-cosmosdb -am verify
+        ./mvnw -s settings.xml -B -pl .,edc-controlplanes/edc-controlplane-cosmosdb -am verify
       env:
         GITHUB_PACKAGE_USERNAME: ${{ github.actor }}
         GITHUB_PACKAGE_PASSWORD: ${{ secrets.CXNG_GHCR_PAT }}
@@ -257,10 +257,10 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: edc-controlplane/edc-controlplane-cosmosdb/src/main/docker/Dockerfile
+        file: edc-controlplanes/edc-controlplane-cosmosdb/src/main/docker/Dockerfile
         build-args: |
-          JAR=edc-controlplane/edc-controlplane-cosmosdb/target/edc-controlplane-cosmosdb.jar
-          LIB=edc-controlplane/edc-controlplane-cosmosdb/target/lib
+          JAR=edc-controlplanes/edc-controlplane-cosmosdb/target/edc-controlplane-cosmosdb.jar
+          LIB=edc-controlplanes/edc-controlplane-cosmosdb/target/lib
         push: |
           ${{ (needs.secret-presence.outputs.CXNG_GHCR_PAT && github.event_name != 'pull_request' && 'true') || 'false' }}
         tags: ${{ steps.edc_controlplane_cosmosdb_meta.outputs.tags }}
@@ -278,7 +278,7 @@ jobs:
       with:
         appname: 'product-edc/edc-controlplane-cosmosdb'
         createprofile: true
-        filepath: edc-controlplane/edc-controlplane-cosmosdb/target/edc-controlplane-cosmosdb.jar
+        filepath: edc-controlplanes/edc-controlplane-cosmosdb/target/edc-controlplane-cosmosdb.jar
         version: ${{ github.ref }}
         vid: ${{ secrets.VERACODE_ID }}
         vkey: ${{ secrets.VERACODE_SECRET_KEY }}
@@ -320,7 +320,7 @@ jobs:
     -
       name: Build edc-controlplane-postgresql
       run: |-
-        ./mvnw -s settings.xml -B -pl .,edc-controlplane/edc-controlplane-postgresql -am verify
+        ./mvnw -s settings.xml -B -pl .,edc-controlplanes/edc-controlplane-postgresql -am verify
       env:
         GITHUB_PACKAGE_USERNAME: ${{ github.actor }}
         GITHUB_PACKAGE_PASSWORD: ${{ secrets.CXNG_GHCR_PAT }}
@@ -342,10 +342,10 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: edc-controlplane/edc-controlplane-postgresql/src/main/docker/Dockerfile
+        file: edc-controlplanes/edc-controlplane-postgresql/src/main/docker/Dockerfile
         build-args: |
-          JAR=edc-controlplane/edc-controlplane-postgresql/target/edc-controlplane-postgresql.jar
-          LIB=edc-controlplane/edc-controlplane-postgresql/target/lib
+          JAR=edc-controlplanes/edc-controlplane-postgresql/target/edc-controlplane-postgresql.jar
+          LIB=edc-controlplanes/edc-controlplane-postgresql/target/lib
         push: |
           ${{ (needs.secret-presence.outputs.CXNG_GHCR_PAT && github.event_name != 'pull_request' && 'true') || 'false' }}
         tags: ${{ steps.edc_controlplane_postgresql_meta.outputs.tags }}
@@ -363,7 +363,7 @@ jobs:
       with:
         appname: 'product-edc/edc-controlplane-postgresql'
         createprofile: true
-        filepath: edc-controlplane/edc-controlplane-postgresql/target/edc-controlplane-postgresql.jar
+        filepath: edc-controlplanes/edc-controlplane-postgresql/target/edc-controlplane-postgresql.jar
         version: ${{ github.ref }}
         vid: ${{ secrets.VERACODE_ID }}
         vkey: ${{ secrets.VERACODE_SECRET_KEY }}

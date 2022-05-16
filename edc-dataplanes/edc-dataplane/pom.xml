@@ -14,13 +14,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>edc-controlplane</artifactId>
         <groupId>net.catenax.edc</groupId>
+        <artifactId>edc-dataplanes</artifactId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>edc-controlplane-postgresql</artifactId>
+    <artifactId>edc-dataplane</artifactId>
     <packaging>jar</packaging>
 
     <build>
@@ -33,7 +33,7 @@
                 </includes>
             </resource>
             <resource>
-                <directory>../../</directory>
+                <directory>../</directory>
                 <targetPath>META-INF</targetPath>
                 <includes>
                     <include>NOTICE.md</include>
@@ -76,32 +76,11 @@
         </plugins>
     </build>
 
-
     <dependencies>
-        <!-- CX Extensions -->
-        <dependency>
-            <groupId>net.catenax.edc.extensions</groupId>
-            <artifactId>aas-controller</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.catenax.edc.extensions</groupId>
-            <artifactId>business-partner-validation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.catenax.edc.extensions</groupId>
-            <artifactId>postgresql-migration</artifactId>
-        </dependency>
-
         <!-- Config -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>filesystem-configuration</artifactId>
-        </dependency>
-
-        <!-- Security -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>auth-tokenbased</artifactId>
         </dependency>
 
         <!-- Vault -->
@@ -123,67 +102,19 @@
         <!-- APIs -->
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>control-api</artifactId>
+            <artifactId>data-plane-framework</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>data-management-api</artifactId>
+            <artifactId>data-plane-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.dataspaceconnector</groupId>
+            <artifactId>data-plane-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>observability-api</artifactId>
-        </dependency>
-
-        <!-- IDS -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-api-configuration</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-api-multipart-dispatcher-v1</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-api-multipart-endpoint-v1</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-api-transform-v1</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-spi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>ids-token-validation</artifactId>
-        </dependency>
-
-        <!-- Stores -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>asset-index-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>contractdefinition-store-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>contractnegotiation-store-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>transfer-process-store-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>policy-store-sql</artifactId>
         </dependency>
 
         <!-- Core -->
@@ -194,30 +125,6 @@
         <dependency>
             <groupId>org.eclipse.dataspaceconnector</groupId>
             <artifactId>core-boot</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>transfer</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>contract</artifactId>
-        </dependency>
-
-        <!-- Data-Plane -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>data-plane-transfer-sync</artifactId>
-        </dependency>
-
-        <!-- IAM -->
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>oauth2-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>iam-daps</artifactId>
         </dependency>
 
         <!-- Telemetry -->
@@ -247,21 +154,6 @@
             <artifactId>http</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>apache-commons-pool-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>transaction-local</artifactId>
-        </dependency>
-
-        <dependency>
-            <!-- http-posts EndpointDataReference to configured external service -->
-            <groupId>org.eclipse.dataspaceconnector</groupId>
-            <artifactId>http-receiver</artifactId>
-        </dependency>
-
         <!-- Other -->
         <dependency>
             <groupId>com.azure</groupId>
@@ -271,12 +163,7 @@
             <groupId>com.azure</groupId>
             <artifactId>azure-security-keyvault-secrets</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
     </dependencies>
-
 
     <profiles>
         <profile>
@@ -289,11 +176,11 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
+                        <!--
+                            NOTE: To build and tag docker images the `docker` executable needs to
+                                  be on the PATH to be used by the exec-maven-plugin plugin
+                        -->
                         <executions>
-                            <!--
-                                NOTE: To build and tag docker images the `docker` executable needs to
-                                      be on the PATH to be used by the exec-maven-plugin plugin
-                            -->
                             <execution>
                                 <id>docker-build-${project.artifactId}:${project.version}</id>
                                 <phase>package</phase>

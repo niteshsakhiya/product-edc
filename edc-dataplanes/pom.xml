@@ -9,7 +9,7 @@
   SPDX-License-Identifier: Apache-2.0
 
   Contributors:
-       Mercedes-Benz Tech Innovation GmbH - Initial POM
+       ZF Friedrichshafen AG - Initial POM
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -21,12 +21,10 @@
         <version>0.0.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>edc-controlplane</artifactId>
+    <artifactId>edc-dataplanes</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>edc-controlplane-cosmosdb</module>
-        <module>edc-controlplane-memory</module>
-        <module>edc-controlplane-postgresql</module>
+        <module>edc-dataplane</module>
     </modules>
 </project>
