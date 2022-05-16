@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -32,34 +33,57 @@ import java.util.concurrent.CompletableFuture;
 
 public class HashicorpVaultClientTest {
     private static final String key = "key";
-    private HashicorpVaultClient vaultClient;
-    private OkHttpClient okHttpClient;
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setup() {
-        HashicorpVaultClientConfig hashicorpVaultClientConfig = HashicorpVaultClientConfig.builder()
-                .vaultUrl("https://mock.url")
-                .vaultToken(UUID.randomUUID().toString())
-                .build();
-
-        okHttpClient = Mockito.mock(OkHttpClient.class);
-        objectMapper = new ObjectMapper();
-        vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, objectMapper);
-    }
+    private static final ObjectMapper objectMapper = new ObjectMapper();;
 
     @Test
     void getSecretValue() {
         // prepare
+        String vaultUrl = "https://mock.url";
+        String vaultToken = UUID.randomUUID().toString();
+        HashicorpVaultClientConfig hashicorpVaultClientConfig = HashicorpVaultClientConfig.builder()
+                .vaultUrl(vaultUrl)
+                .vaultToken(vaultToken)
+                .build();
+
+        OkHttpClient okHttpClient = Mockito.mock(OkHttpClient.class);
+        HashicorpVaultClient vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, objectMapper);
+
         Call call = Mockito.mock(Call.class);
         Mockito.when(okHttpClient.newCall(Mockito.any(Request.class))).thenReturn(call);
-        Mockito.doNothing().when(call.enqueue(Mockito.any(HashicorpVaultClient.GetSecretResponseCallback.class)));
+        Mockito.doNothing().when(call).enqueue(Mockito.any(HashicorpVaultClient.GetSecretResponseCallback.class));
 
         // invoke
         CompletableFuture<Result<String>> completableFuture = vaultClient.getSecretValue(key);
 
         // verify
         Assertions.assertNotNull(completableFuture);
+        Mockito.verify(okHttpClient, Mockito.times(1)).newCall(Mockito.argThat(request -> request.method().equalsIgnoreCase("GET") && request.url().encodedPath().contains("/v1/secret/data") && request.url().encodedPathSegments().contains(key)));
+    }
+
+    @Test
+    void setSecretValue() {
+        // prepare
+        String vaultUrl = "https://mock.url";
+        String vaultToken = UUID.randomUUID().toString();
+        String secretValue = UUID.randomUUID().toString();
+        HashicorpVaultClientConfig hashicorpVaultClientConfig = HashicorpVaultClientConfig.builder()
+                .vaultUrl(vaultUrl)
+                .vaultToken(vaultToken)
+                .build();
+
+        OkHttpClient okHttpClient = Mockito.mock(OkHttpClient.class);
+        HashicorpVaultClient vaultClient = new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, objectMapper);
+
+        Call call = Mockito.mock(Call.class);
+        Mockito.when(okHttpClient.newCall(Mockito.any(Request.class))).thenReturn(call);
+        Mockito.doNothing().when(call).enqueue(Mockito.any(HashicorpVaultClient.StoreSecretResponseCallback.class));
+
+        // invoke
+        CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> completableFuture = vaultClient.setSecret(key, secretValue);
+
+        // verify
+        Assertions.assertNotNull(completableFuture);
+        Mockito.verify(okHttpClient, Mockito.times(1)).newCall(Mockito.argThat(request -> request.method().equalsIgnoreCase("POST") && request.url().encodedPath().contains("/v1/secret/data") && request.url().encodedPathSegments().contains(key)));
     }
 
 }
