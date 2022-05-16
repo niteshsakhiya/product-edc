@@ -15,15 +15,26 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.UUID;
+
 import lombok.NonNull;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -34,6 +45,13 @@ import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.jetbrains.annotations.Nullable;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 public class HashicorpVaultExtension implements VaultExtension {
 
@@ -78,14 +96,84 @@ public class HashicorpVaultExtension implements VaultExtension {
   public void initializeVault(ServiceExtensionContext context) {
     HashicorpVaultClientConfig config = loadHashicorpVaultClientConfig(context);
 
+    OkHttpClient okHttpClient = createOkHttpClient(config);
     HashicorpVaultClient client =
-        new HashicorpVaultClient(config, context.getTypeManager().getMapper());
+        new HashicorpVaultClient(config, okHttpClient, context.getTypeManager().getMapper());
 
     vault = new HashicorpVault(client, context.getMonitor(), config.getTimeout());
     certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
     privateKeyResolver = new VaultPrivateKeyResolver(vault);
 
     context.getMonitor().info("HashicorpVaultExtension: authentication/initialization complete.");
+  }
+
+  private OkHttpClient createOkHttpClient(HashicorpVaultClientConfig config) {
+    X509TrustManager trustManager = null;
+    if (config.getCertificateCa() != null) {
+      trustManager = buildTrustManager(config.getCertificateCa());
+    }
+
+    SSLContext sslContext = null;
+    if (config.getCertificate() != null && config.getCertificatePrivateKey() != null) {
+      sslContext =
+              buildSslContext(config.getCertificate(), config.getCertificatePrivateKey(), trustManager);
+    }
+
+    OkHttpClient.Builder builder =
+            new OkHttpClient.Builder()
+                    .callTimeout(config.getTimeout())
+                    .readTimeout(config.getTimeout());
+
+    if (sslContext != null) {
+      assert trustManager != null;
+      builder = builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
+    }
+
+    return builder.build();
+  }
+
+  private static X509TrustManager buildTrustManager(@NonNull X509Certificate caCert) {
+    try {
+      final TrustManagerFactory trustManagerFactory =
+              TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+      final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+      keyStore.load(null);
+      keyStore.setCertificateEntry("caCert", caCert);
+      trustManagerFactory.init(keyStore);
+      return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+    } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
+  }
+
+  private static SSLContext buildSslContext(
+          @NonNull X509Certificate cert, @NonNull PrivateKey privateKey, TrustManager trustManager) {
+    try {
+      TrustManager[] trustManagers = null;
+      if (trustManager != null) {
+        trustManagers = new TrustManager[] {trustManager};
+      }
+      final KeyManagerFactory keyManagerFactory =
+              KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+      keyStore.load(null, "password".toCharArray());
+      keyStore.setCertificateEntry("clientCert", cert);
+      String pass = UUID.randomUUID().toString();
+      keyStore.setKeyEntry("key", privateKey, pass.toCharArray(), new Certificate[] {cert});
+      keyManagerFactory.init(keyStore, pass.toCharArray());
+      KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+
+      final SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(keyManagers, trustManagers, null);
+      return sslContext;
+    } catch (CertificateException
+            | IOException
+            | NoSuchAlgorithmException
+            | KeyStoreException
+            | KeyManagementException
+            | UnrecoverableKeyException e) {
+      throw new HashicorpVaultException(e.getMessage(), e);
+    }
   }
 
   private HashicorpVaultClientConfig loadHashicorpVaultClientConfig(
