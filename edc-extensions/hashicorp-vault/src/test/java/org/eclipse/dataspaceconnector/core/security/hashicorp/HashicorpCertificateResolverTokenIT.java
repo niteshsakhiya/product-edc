@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
+class HashicorpCertificateResolverTokenIT extends AbstractHashicorpTokenIT {
 
   @Test
   @SneakyThrows

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class HashicorpVaultIT extends AbstractHashicorpIT {
+class HashicorpVaultTokenIT extends AbstractHashicorpTokenIT {
 
   @Test
   @DisplayName("Resolve a secret that exists")

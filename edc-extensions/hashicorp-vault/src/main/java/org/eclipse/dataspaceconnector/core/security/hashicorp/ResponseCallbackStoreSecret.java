@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 class ResponseCallbackStoreSecret
-    extends OkHttpResponseCallback<Result<HashicorpVaultCreateEntryResponsePayload>> {
+    extends ResponseCallback<Result<HashicorpVaultCreateEntryResponsePayload>> {
   private final ObjectMapper objectMapper;
   private static final String ERROR_TEMPLATE = "Call unsuccessful: %s";
 

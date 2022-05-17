@@ -24,7 +24,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-class ResponseCallbackGetSecret extends OkHttpResponseCallback<Result<String>> {
+class ResponseCallbackGetSecret extends ResponseCallback<Result<String>> {
   private final ObjectMapper objectMapper;
   private final String vaultDataEntryName;
   private static final String ERROR_TEMPLATE = "Call unsuccessful: %s";

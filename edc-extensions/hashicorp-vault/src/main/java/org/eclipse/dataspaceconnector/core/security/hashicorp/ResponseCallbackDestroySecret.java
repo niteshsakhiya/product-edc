@@ -21,7 +21,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-class ResponseCallbackDestroySecret extends OkHttpResponseCallback<Result<Void>> {
+class ResponseCallbackDestroySecret extends ResponseCallback<Result<Void>> {
   private static final String ERROR_TEMPLATE = "Call unsuccessful: %s";
 
   public ResponseCallbackDestroySecret(@NonNull CompletableFuture<Result<Void>> completableFuture) {

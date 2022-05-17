@@ -36,7 +36,7 @@ import org.testcontainers.vault.VaultContainer;
 
 @Testcontainers
 @ExtendWith(EdcExtension.class)
-class AbstractHashicorpIT {
+class AbstractHashicorpTokenIT {
   static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
   static final String VAULT_ENTRY_KEY = "testing";
   static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
