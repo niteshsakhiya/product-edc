@@ -31,6 +31,15 @@ updates:
   -
     package-ecosystem: "docker"
     target-branch: develop
+    directory: "edc-dataplanes/edc-dataplane-catenax-at-home/src/main/docker"
+    labels:
+      - "dependabot"
+      - "docker"
+    schedule:
+      interval: "daily"
+  -
+    package-ecosystem: "docker"
+    target-branch: develop
     directory: "edc-controlplanes/edc-controlplane-cosmosdb/src/main/docker"
     labels:
       - "dependabot"
