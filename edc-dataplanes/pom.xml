@@ -26,5 +26,6 @@
 
     <modules>
         <module>edc-dataplane</module>
+        <module>edc-dataplane-catenax-at-home</module>
     </modules>
 </project>
