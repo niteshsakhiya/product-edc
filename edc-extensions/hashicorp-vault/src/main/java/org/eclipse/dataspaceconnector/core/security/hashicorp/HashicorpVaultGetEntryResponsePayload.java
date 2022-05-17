@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-class GetHashicorpVaultEntryResponsePayload {
+class HashicorpVaultGetEntryResponsePayload {
 
   @JsonProperty("data")
   private GetVaultEntryData data;

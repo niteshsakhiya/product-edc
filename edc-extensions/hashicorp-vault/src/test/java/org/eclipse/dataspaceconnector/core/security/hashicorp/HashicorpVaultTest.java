@@ -63,8 +63,9 @@ class HashicorpVaultTest {
   void setSecret() {
     // prepare
     String value = UUID.randomUUID().toString();
-    CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future = Mockito.mock(CompletableFuture.class);
-    Result<CreateHashicorpVaultEntryResponsePayload> result = Mockito.mock(Result.class);
+    CompletableFuture<Result<HashicorpVaultCreateEntryResponsePayload>> future =
+        Mockito.mock(CompletableFuture.class);
+    Result<HashicorpVaultCreateEntryResponsePayload> result = Mockito.mock(Result.class);
     Mockito.when(vaultClient.setSecret(key, value)).thenReturn(future);
     Mockito.when(future.get()).thenReturn(result);
     Mockito.when(result.succeeded()).thenReturn(true);

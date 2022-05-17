@@ -32,7 +32,12 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.UUID;
-
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import lombok.NonNull;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -46,20 +51,19 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
 public class HashicorpVaultExtension implements VaultExtension {
 
-  @EdcSetting(required = true) public static final String VAULT_URL = "edc.vault.url";
+  @EdcSetting(required = true)
+  public static final String VAULT_URL = "edc.vault.url";
+
   @EdcSetting public static final String VAULT_TOKEN = "edc.vault.token";
   @EdcSetting public static final String VAULT_CERTIFICATE = "edc.vault.certificate";
   @EdcSetting public static final String VAULT_CERTIFICATE_PRIVATEKEY = "edc.vault.certificate.key";
-  @EdcSetting public static final String VAULT_CERTIFICATE_PRIVATEKEY_PASSWORD = "edc.vault.certificate.key.password";
+
+  @EdcSetting
+  public static final String VAULT_CERTIFICATE_PRIVATEKEY_PASSWORD =
+      "edc.vault.certificate.key.password";
+
   @EdcSetting public static final String VAULT_CERTIFICATE_CA = "edc.vault.certificate.ca";
   @EdcSetting private static final String VAULT_TIMEOUT_SECONDS = "edc.vault.timeout.seconds";
 
@@ -116,13 +120,13 @@ public class HashicorpVaultExtension implements VaultExtension {
     SSLContext sslContext = null;
     if (config.getCertificate() != null && config.getCertificatePrivateKey() != null) {
       sslContext =
-              buildSslContext(config.getCertificate(), config.getCertificatePrivateKey(), trustManager);
+          buildSslContext(config.getCertificate(), config.getCertificatePrivateKey(), trustManager);
     }
 
     OkHttpClient.Builder builder =
-            new OkHttpClient.Builder()
-                    .callTimeout(config.getTimeout())
-                    .readTimeout(config.getTimeout());
+        new OkHttpClient.Builder()
+            .callTimeout(config.getTimeout())
+            .readTimeout(config.getTimeout());
 
     if (sslContext != null) {
       assert trustManager != null;
@@ -135,7 +139,7 @@ public class HashicorpVaultExtension implements VaultExtension {
   private static X509TrustManager buildTrustManager(@NonNull X509Certificate caCert) {
     try {
       final TrustManagerFactory trustManagerFactory =
-              TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+          TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(null);
       keyStore.setCertificateEntry("caCert", caCert);
@@ -147,14 +151,14 @@ public class HashicorpVaultExtension implements VaultExtension {
   }
 
   private static SSLContext buildSslContext(
-          @NonNull X509Certificate cert, @NonNull PrivateKey privateKey, TrustManager trustManager) {
+      @NonNull X509Certificate cert, @NonNull PrivateKey privateKey, TrustManager trustManager) {
     try {
       TrustManager[] trustManagers = null;
       if (trustManager != null) {
         trustManagers = new TrustManager[] {trustManager};
       }
       final KeyManagerFactory keyManagerFactory =
-              KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+          KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
       final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(null, "password".toCharArray());
       keyStore.setCertificateEntry("clientCert", cert);
@@ -167,11 +171,11 @@ public class HashicorpVaultExtension implements VaultExtension {
       sslContext.init(keyManagers, trustManagers, null);
       return sslContext;
     } catch (CertificateException
-            | IOException
-            | NoSuchAlgorithmException
-            | KeyStoreException
-            | KeyManagementException
-            | UnrecoverableKeyException e) {
+        | IOException
+        | NoSuchAlgorithmException
+        | KeyStoreException
+        | KeyManagementException
+        | UnrecoverableKeyException e) {
       throw new HashicorpVaultException(e.getMessage(), e);
     }
   }

@@ -55,10 +55,10 @@ class HashicorpVault implements Vault {
   @Override
   @NotNull
   public Result<Void> storeSecret(@NotNull @NonNull String key, @NotNull @NonNull String value) {
-    CompletableFuture<Result<CreateHashicorpVaultEntryResponsePayload>> future =
+    CompletableFuture<Result<HashicorpVaultCreateEntryResponsePayload>> future =
         hashicorpVaultClient.setSecret(key, value);
 
-    Result<CreateHashicorpVaultEntryResponsePayload> result = getResult(future);
+    Result<HashicorpVaultCreateEntryResponsePayload> result = getResult(future);
 
     return result.succeeded() ? Result.success() : Result.failure(result.getFailureMessages());
   }

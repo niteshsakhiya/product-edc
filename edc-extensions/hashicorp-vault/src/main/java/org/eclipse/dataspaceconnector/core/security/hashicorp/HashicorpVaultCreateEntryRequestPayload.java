@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.core.security.hashicorp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,8 +27,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-class CreateHashicorpVaultEntryResponsePayload {
+class HashicorpVaultCreateEntryRequestPayload {
+
+  @JsonProperty("options")
+  private Options options;
 
   @JsonProperty("data")
-  private HashicorpVaultEntryMetadata data;
+  private Map<String, String> data;
+
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Data
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class Options {
+    @JsonProperty("cas")
+    private Integer cas;
+  }
 }
