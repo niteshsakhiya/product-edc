@@ -69,6 +69,7 @@
         <com.azure.sdk.bom.version>1.2.2</com.azure.sdk.bom.version>
         <org.postgresql.version>42.4.2</org.postgresql.version>
         <org.flywaydb.version>9.1.5</org.flywaydb.version>
+        <com.hierynomous.sshj.version>0.27.0</com.hierynomous.sshj.version>
 
         <!-- test dependency version -->
         <junit.jupiter.version>5.9.0</junit.jupiter.version>
@@ -405,6 +406,11 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${ch.qos.logback.logback-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.hierynomus</groupId>
+                <artifactId>sshj</artifactId>
+                <version>${com.hierynomous.sshj.version}</version>
             </dependency>
 
             <!-- EDC Extensions -->
