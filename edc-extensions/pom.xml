@@ -35,6 +35,7 @@
         <module>hashicorp-vault</module>
         <module>dataplane-selector-configuration</module>
         <module>transferprocess-sftp-provisioner</module>
+        <module>transferprocess-sftp-client</module>
     </modules>
 
 </project>
