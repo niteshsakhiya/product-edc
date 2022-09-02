@@ -94,18 +94,23 @@ configuration:
     edc.datasource.asset.name=asset
     edc.datasource.asset.url=jdbc:postgresql://ftcpro-postgresql-primary.postgres:5432/edc?currentSchema=consumer
     edc.datasource.asset.user=edc
+    edc.datasource.asset.password=<path:traceability-foss/data/dev/database#password>
     edc.datasource.contractdefinition.name=contractdefinition
     edc.datasource.contractdefinition.url=jdbc:postgresql://ftcpro-postgresql-primary.postgres:5432/edc?currentSchema=consumer
     edc.datasource.contractdefinition.user=edc
+    edc.datasource.contractdefinition.password=<path:traceability-foss/data/dev/database#password>
     edc.datasource.contractnegotiation.name=contractnegotiation
     edc.datasource.contractnegotiation.url=jdbc:postgresql://ftcpro-postgresql-primary.postgres:5432/edc?currentSchema=consumer
     edc.datasource.contractnegotiation.user=edc
+    edc.datasource.contractnegotiation.password=<path:traceability-foss/data/dev/database#password>
     edc.datasource.policy.name=policy
     edc.datasource.policy.url=jdbc:postgresql://ftcpro-postgresql-primary.postgres:5432/edc?currentSchema=consumer
     edc.datasource.policy.user=edc
+    edc.datasource.policy.password=<path:traceability-foss/data/dev/database#password>
     edc.datasource.transferprocess.name=transferprocess
     edc.datasource.transferprocess.url=jdbc:postgresql://ftcpro-postgresql-primary.postgres:5432/edc?currentSchema=consumer
     edc.datasource.transferprocess.user=edc
+    edc.datasource.transferprocess.password=<path:traceability-foss/data/dev/database#password>
     edc.hostname=trace-consumer-controlplane.dev.demo.ftcpro.co
     edc.ids.catalog.id=urn:catalog:default
     edc.ids.description="Eclipse Dataspace Connector"
@@ -116,14 +121,14 @@ configuration:
     edc.ids.title="Eclipse Dataspace Connector"
     edc.receiver.http.endpoint=http://trace-api-wrapper:9192/callback/endpoint-data-reference
     edc.transfer.proxy.endpoint=https://trace-consumer-dataplane.dev.demo.ftcpro.co/api/public
-    edc.transfer.proxy.token.verifier.publickey.alias=token-signer-cert-dev
-    edc.transfer.proxy.token.signer.privatekey.alias=token-signer-cert-key-dev
+    edc.transfer.proxy.token.verifier.publickey.alias=daps-public-cert
+    edc.transfer.proxy.token.signer.privatekey.alias=daps-key
     edc.vault.hashicorp.url=https://vault.dev.ftcpro.co/v1/
     edc.vault.hashicorp.health.check.enabled=true
     edc.vault.hashicorp.health.check.standby.ok=true
     edc.vault.hashicorp.api.secret.path=/traceability-foss
-    edc.oauth.public.key.alias=/dev/edc/daps
-    edc.oauth.private.key.alias=/dev/edc/daps
+    edc.oauth.public.key.alias=daps-public-cert
+    edc.oauth.private.key.alias=daps-key
     edc.oauth.client.id=60:99:BC:FC:9B:F9:5D:58:C4:94:1D:02:65:3E:88:B6:F9:C7:23:B3:keyid:60:99:BC:FC:9B:F9:5D:58:C4:94:1D:02:65:3E:88:B6:F9:C7:23:B3
     edc.oauth.provider.audience=idsc:IDS_CONNECTORS_ALL
     edc.oauth.provider.jwks.url=https://daps.dev.demo.ftcpro.co/.well-known/jwks.json
