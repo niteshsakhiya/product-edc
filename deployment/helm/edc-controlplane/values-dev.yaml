@@ -129,3 +129,5 @@ configuration:
     edc.oauth.provider.jwks.url=https://daps.dev.demo.ftcpro.co/.well-known/jwks.json
     edc.oauth.token.url=https://daps.dev.demo.ftcpro.co/token
     edc.vault.hashicorp.token=<path:traceability-foss/data/dev/edc#edc.vault.hashicorp.token>
+    edc.data.encryption.keys.alias=/dev/edc/daps/encryption-key
+    edc.data.encryption.algorithm=AES
