@@ -124,8 +124,8 @@ configuration:
     edc.transfer.proxy.token.verifier.publickey.alias=daps-public-cert
     edc.transfer.proxy.token.signer.privatekey.alias=daps-key
     edc.vault.hashicorp.url=https://vault.dev.ftcpro.co/v1/
-    edc.vault.hashicorp.health.check.enabled=true
-    edc.vault.hashicorp.health.check.standby.ok=true
+    edc.vault.hashicorp.health.check.enabled=false
+    edc.vault.hashicorp.health.check.standby.ok=false
     edc.vault.hashicorp.api.secret.path=/traceability-foss
     edc.oauth.public.key.alias=daps-public-cert
     edc.oauth.private.key.alias=daps-key
@@ -136,3 +136,10 @@ configuration:
     edc.vault.hashicorp.token=<path:traceability-foss/data/dev/edc#edc.vault.hashicorp.token>
     edc.data.encryption.keys.alias=daps-encryption-key
     edc.data.encryption.algorithm=AES
+
+
+opentelemetry:
+  # -- opentelemetry.properties configuring the [opentelemetry agent](https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/)
+  properties: |-
+    otel.javaagent.enabled=false
+    otel.javaagent.debug=false
