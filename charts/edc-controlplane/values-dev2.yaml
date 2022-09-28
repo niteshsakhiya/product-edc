@@ -4,7 +4,7 @@ replicaCount: 1
 image:
   tag: "0.1.0"
 
-fullnameOverride: "trace-consumer-controlplane"
+fullnameOverride: "consumer-controlplane"
 
 ## EDC endpoints exposed by the control-plane
 edc:
