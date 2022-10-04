@@ -141,7 +141,7 @@ configuration:
     edc.dataplane.selector.dataplane.sourcetypes=HttpData,HttpProvision
     edc.dataplane.selector.dataplane.destinationtypes=HttpData,HttpProvision,HttpProxy
     edc.dataplane.selector.dataplane.properties={"publicApiUrl":"http://localhost:9196/api/public/","method":"POST"}
-
+    edc.ids.endpoint.audience=https://trace-consumer-controlplane.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
 
 
 opentelemetry:
