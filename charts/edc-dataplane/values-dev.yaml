@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  tag: "0.1.2"
+  tag: "0.1.1"
 
 # -- Overrides the releases full name
 fullnameOverride: "trace-consumer-dataplane"
