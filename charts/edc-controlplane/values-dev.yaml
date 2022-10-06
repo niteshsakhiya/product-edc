@@ -58,6 +58,9 @@ ingresses:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     # -- EDC endpoints exposed by this ingress resource
     endpoints:
+      - data
+      - validation
+      - control
       - ids
     # -- Defines the [ingress class](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class)  to use
     className: "nginx"
