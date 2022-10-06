@@ -137,11 +137,11 @@ configuration:
     edc.vault.hashicorp.token=<path:traceability-foss/data/dev/edc#edc.vault.hashicorp.token>
     edc.data.encryption.keys.alias=daps-encryption-key
     edc.data.encryption.algorithm=AES
-    edc.dataplane.selector.dataplane.url=http://localhost:9194/api/controlplane/control/transfer
+    edc.dataplane.selector.dataplane.url=https://consumer-controlplane-3.dev.demo.ftcpro.co/api/controlplane/control/transfer
     edc.dataplane.selector.dataplane.sourcetypes=HttpData,HttpProvision
     edc.dataplane.selector.dataplane.destinationtypes=HttpData,HttpProvision,HttpProxy
-    edc.dataplane.selector.dataplane.properties={"publicApiUrl":"http://localhost:9196/api/public/","method":"POST"}
-    edc.ids.endpoint.audience=https://trace-consumer-controlplane-3.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
+    edc.dataplane.selector.dataplane.properties={"publicApiUrl":"https://consumer-dataplane-3.dev.demo.ftcpro.co/api/public/test","method":"POST"}
+    edc.ids.endpoint.audience=https://consumer-controlplane-3.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
 
 
 opentelemetry:
