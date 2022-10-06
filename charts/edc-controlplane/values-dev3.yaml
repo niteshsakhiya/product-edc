@@ -118,13 +118,13 @@ configuration:
     edc.hostname=consumer-controlplane-3.dev.demo.ftcpro.co
     edc.ids.catalog.id=urn:catalog:default
     edc.ids.description="Eclipse Dataspace Connector"
-    edc.ids.endpoint=https://consumer-controlplane-3.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids
-    ids.webhook.address=https://consumer-controlplane-3.dev.demo.ftcpro.co
+    edc.ids.endpoint=http://consumer-controlplane.edc3:8282/BPNL00000003CML1/api/v1/ids
+    ids.webhook.address=http://consumer-controlplane.edc3:8282
     edc.ids.id=urn:connector:edc
     edc.ids.security.profile=base
     edc.ids.title="Eclipse Dataspace Connector"
-    edc.receiver.http.endpoint=https://trace-3.dev.demo.ftcpro.co/api/endpoint-data-reference
-    edc.transfer.proxy.endpoint=https://consumer-dataplane-3.dev.demo.ftcpro.co/api/public
+    edc.receiver.http.endpoint=http://product-traceability-foss-backend.traceability3:8080/api/endpoint-data-reference
+    edc.transfer.proxy.endpoint=http://consumer-dataplane.edc3:8185/api/public
     edc.transfer.proxy.token.verifier.publickey.alias=daps-public-cert3
     edc.transfer.proxy.token.signer.privatekey.alias=daps-key3
     edc.vault.hashicorp.url=https://vault.dev.ftcpro.co/v1/
@@ -140,11 +140,11 @@ configuration:
     edc.vault.hashicorp.token=<path:traceability-foss/data/dev/edc#edc.vault.hashicorp.token>
     edc.data.encryption.keys.alias=daps-encryption-key
     edc.data.encryption.algorithm=AES
-    edc.dataplane.selector.dataplane.url=https://consumer-controlplane-3.dev.demo.ftcpro.co/api/controlplane/control/transfer
+    edc.dataplane.selector.dataplane.url=http://consumer-controlplane.edc3:9999/api/controlplane/control/transfer
     edc.dataplane.selector.dataplane.sourcetypes=HttpData,HttpProvision
     edc.dataplane.selector.dataplane.destinationtypes=HttpData,HttpProvision,HttpProxy
-    edc.dataplane.selector.dataplane.properties={"publicApiUrl":"https://consumer-dataplane-3.dev.demo.ftcpro.co/api/public/test","method":"POST"}
-    edc.ids.endpoint.audience=https://consumer-controlplane-3.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
+    edc.dataplane.selector.dataplane.properties={"publicApiUrl":"http://consumer-dataplane.edc3:8185/api/public/test","method":"POST"}
+    edc.ids.endpoint.audience=http://consumer-controlplane.edc3:8282/BPNL00000003CML1/api/v1/ids/data
 
 
 opentelemetry:
