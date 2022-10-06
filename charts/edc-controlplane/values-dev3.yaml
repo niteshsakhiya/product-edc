@@ -123,7 +123,7 @@ configuration:
     edc.ids.id=urn:connector:edc
     edc.ids.security.profile=base
     edc.ids.title="Eclipse Dataspace Connector"
-    edc.receiver.http.endpoint=http://trace-api-wrapper:9192/callback/endpoint-data-reference
+    edc.receiver.http.endpoint=https://trace-3.dev.demo.ftcpro.co/api/endpoint-data-reference
     edc.transfer.proxy.endpoint=https://consumer-dataplane-3.dev.demo.ftcpro.co/api/public
     edc.transfer.proxy.token.verifier.publickey.alias=daps-public-cert3
     edc.transfer.proxy.token.signer.privatekey.alias=daps-key3
