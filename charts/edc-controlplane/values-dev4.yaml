@@ -118,8 +118,8 @@ configuration:
     edc.hostname=consumer-controlplane-4.dev.demo.ftcpro.co
     edc.ids.catalog.id=urn:catalog:default
     edc.ids.description="Eclipse Dataspace Connector"
-    edc.ids.endpoint=http://consumer-controlplane.edc4:8282/BPNL00000003CML1/api/v1/ids
-    ids.webhook.address=http://consumer-controlplane.edc4:8282
+    edc.ids.endpoint=https://consumer-controlplane-4.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids
+    ids.webhook.address=https://consumer-controlplane-4.dev.demo.ftcpro.co
     edc.ids.id=urn:connector:edc
     edc.ids.security.profile=base
     edc.ids.title="Eclipse Dataspace Connector"
@@ -144,7 +144,7 @@ configuration:
     edc.dataplane.selector.dataplane.sourcetypes=HttpData,HttpProvision
     edc.dataplane.selector.dataplane.destinationtypes=HttpData,HttpProvision,HttpProxy
     edc.dataplane.selector.dataplane.properties={"publicApiUrl":"http://consumer-dataplane.edc4:8185/api/public/test","method":"POST"}
-    edc.ids.endpoint.audience=http://consumer-controlplane.edc4:8282/BPNL00000003CML1/api/v1/ids/data
+    edc.ids.endpoint.audience=https://consumer-controlplane-4.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
 
 
 opentelemetry:
