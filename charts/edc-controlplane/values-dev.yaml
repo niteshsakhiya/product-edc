@@ -2,7 +2,7 @@
 replicaCount: 1
 
 image:
-  tag: "0.1.1"
+  tag: "0.2.0"
 
 fullnameOverride: "trace-consumer-controlplane"
 
@@ -118,12 +118,12 @@ configuration:
     edc.hostname=trace-consumer-controlplane.dev.demo.ftcpro.co
     edc.ids.catalog.id=urn:catalog:default
     edc.ids.description="Eclipse Dataspace Connector"
-    edc.ids.endpoint=http://trace-consumer-controlplane.edc:8282/BPNL00000003CML1/api/v1/ids
-    ids.webhook.address=http://trace-consumer-controlplane.edc:8282
+    edc.ids.endpoint=https://trace-consumer-controlplane.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids
+    ids.webhook.address=https://trace-consumer-controlplane.dev.demo.ftcpro.co
     edc.ids.id=urn:connector:edc
     edc.ids.security.profile=base
     edc.ids.title="Eclipse Dataspace Connector"
-    edc.receiver.http.endpoint=http://product-traceability-foss-backend.traceability1:8080/api/endpoint-data-reference
+    edc.receiver.http.endpoint=http://edc-api-wrapper.edc-api-wrapper:8080/api/endpoint-data-reference
     edc.transfer.proxy.endpoint=http://trace-consumer-dataplane.edc:8185/api/public
     edc.transfer.proxy.token.verifier.publickey.alias=daps-public-cert
     edc.transfer.proxy.token.signer.privatekey.alias=daps-key
@@ -144,7 +144,7 @@ configuration:
     edc.dataplane.selector.dataplane.sourcetypes=HttpData,HttpProvision
     edc.dataplane.selector.dataplane.destinationtypes=HttpData,HttpProvision,HttpProxy
     edc.dataplane.selector.dataplane.properties={"publicApiUrl":"http://trace-consumer-dataplane.edc:8185/api/public/test","method":"POST"}
-    edc.ids.endpoint.audience=http://trace-consumer-controlplane.edc:8282/BPNL00000003CML1/api/v1/ids/data
+    edc.ids.endpoint.audience=https://trace-consumer-controlplane.dev.demo.ftcpro.co/BPNL00000003CML1/api/v1/ids/data
     edc.negotiation.consumer.state-machine.batch-size=50
     edc.negotiation.provider.state-machine.batch-size=50
     edc.transfer.state-machine.batch-size=100
